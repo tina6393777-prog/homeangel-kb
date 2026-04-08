@@ -237,10 +237,10 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
       <span class="si">🔍</span>
       <input type="text" id="mainSearch" placeholder="搜尋問題、關鍵字…">
     </div>
-    <button class="btn btn-ghost" onclick="importData()" id="importBtn" title="選取 homeangel-data.json 匯入">📥 匯入 JSON</button>
+    <button class="btn btn-ghost" onclick="importData()" id="importBtn" title="匯入從知識庫匯出的資料">📥 匯入更新</button>
     <button class="btn btn-ghost" onclick="requestEdit()" id="editBtn">🔑 編輯模式</button>
     <button class="btn btn-primary hidden edit-only" onclick="openAddModal()" id="addBtn">＋ 新增條目</button>
-    <button class="btn btn-ghost" onclick="exportData()" id="exportBtn" style="border-color:var(--accent);color:var(--accent)">📤 匯出 JSON</button>
+    <button class="btn btn-ghost" onclick="exportData()" id="exportBtn" style="border-color:var(--accent);color:var(--accent)">📤 匯出資料</button>
   </div>
   <div class="content-area" id="contentArea">
 
@@ -421,8 +421,50 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
   </div>
 </div>
 
-<!-- Import Modal -->
+<!-- Export Modal -->
+<div class="mo" id="exportModal">
+  <div class="mb sm">
+    <div class="mh"><div class="mh-title">📤 匯出資料</div><button class="mc" onclick="document.getElementById('exportModal').classList.remove('show')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:14px;">
+        點擊「複製資料」後，將複製的內容貼到 GitHub 的 <code style="background:var(--main-bg);padding:1px 5px;border-radius:4px;font-size:12px">index.html</code> 中指定位置，即可讓所有人看到最新版本。
+      </div>
+      <div style="background:var(--main-bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:6px;letter-spacing:.05em">更新步驟</div>
+        <div style="font-size:13px;color:var(--text-secondary);line-height:1.9;">
+          1️⃣ 點下方「複製資料」<br>
+          2️⃣ 開啟 GitHub → 點 <code style="background:#e5e7eb;padding:1px 4px;border-radius:3px">index.html</code> → 點 ✏️ 編輯<br>
+          3️⃣ 用 Ctrl+F 搜尋 <code style="background:#e5e7eb;padding:1px 4px;border-radius:3px">__EXPORT_DATA_START__</code><br>
+          4️⃣ 選取從 <code style="background:#e5e7eb;padding:1px 4px;border-radius:3px">__EXPORT_DATA_START__</code> 到 <code style="background:#e5e7eb;padding:1px 4px;border-radius:3px">__EXPORT_DATA_END__</code> 之間的所有內容，貼上取代<br>
+          5️⃣ Commit changes → 完成 ✅
+        </div>
+      </div>
+      <textarea id="exportText" style="width:100%;height:120px;font-size:11px;font-family:monospace;background:var(--main-bg);border:1px solid var(--border);border-radius:7px;padding:10px;outline:none;resize:vertical;color:var(--text-secondary)" readonly></textarea>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="document.getElementById('exportModal').classList.remove('show')">關閉</button>
+      <button class="btn btn-primary" onclick="copyExport()" id="copyBtn">📋 複製資料</button>
+    </div>
+  </div>
+</div>
 
+<!-- Import Modal -->
+<div class="mo" id="importModal">
+  <div class="mb sm">
+    <div class="mh"><div class="mh-title">📥 匯入更新</div><button class="mc" onclick="document.getElementById('importModal').classList.remove('show')">✕</button></div>
+    <div class="mbody">
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:12px;">
+        將從知識庫匯出的資料貼入下方，即可更新至最新版本。
+      </div>
+      <textarea id="importText" class="ft" placeholder="貼上匯出的資料…" style="min-height:140px;font-size:12px;font-family:monospace"></textarea>
+      <div id="importErr" style="color:#dc2626;font-size:12px;margin-top:6px;display:none">格式錯誤，請確認貼入的是正確的匯出資料</div>
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-ghost" onclick="document.getElementById('importModal').classList.remove('show')">取消</button>
+      <button class="btn btn-primary" onclick="doImport()">匯入並更新</button>
+    </div>
+  </div>
+</div>
 
 <!-- Lightbox -->
 <div class="lb" id="lb" onclick="document.getElementById('lb').classList.remove('show')">
@@ -982,7 +1024,7 @@ function editCat(id,e){e.stopPropagation();openCatModal();}
 function delCat(id,e){e.stopPropagation();if(!confirm('刪除此分類？'))return;db.cats=db.cats.filter(c=>c.id!==id);saveDB();renderAll();showSec('overview');}
 
 // ── CLOSE OVERLAYS ──
-['qaModal','ovModal','memModal','linksModal','catModal'].forEach(id=>{
+['qaModal','ovModal','memModal','linksModal','catModal','exportModal','importModal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===document.getElementById(id))document.getElementById(id).classList.remove('show');});
 });
 document.getElementById('pwOv').addEventListener('click',e=>{if(e.target===document.getElementById('pwOv'))document.getElementById('pwOv').classList.remove('show');});
@@ -990,43 +1032,55 @@ document.getElementById('pwOv').addEventListener('click',e=>{if(e.target===docum
 // ── EXPORT / IMPORT ──
 function exportData(){
   const data = JSON.stringify(db, null, 2);
-  const blob = new Blob([data], {type: 'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'homeangel-data.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const marker = '__EXPORT_DATA_START__' + data + '__EXPORT_DATA_END__';
+  document.getElementById('exportText').value = marker;
+  document.getElementById('exportModal').classList.add('show');
+  document.getElementById('copyBtn').textContent = '📋 複製資料';
+}
+
+function copyExport(){
+  const txt = document.getElementById('exportText').value;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ 已複製！';
+    setTimeout(()=>btn.textContent='📋 複製資料', 2000);
+  }).catch(()=>{
+    document.getElementById('exportText').select();
+    document.execCommand('copy');
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✅ 已複製！';
+    setTimeout(()=>btn.textContent='📋 複製資料', 2000);
+  });
 }
 
 function importData(){
-  // 直接觸發檔案選取
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json,application/json';
-  input.onchange = function(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      try {
-        const parsed = JSON.parse(ev.target.result);
-        if(!parsed.cats || !parsed.items || !parsed.overview) throw new Error('格式不符');
-        db = parsed;
-        Object.values(db.items).forEach(arr=>arr.forEach(item=>{if(!item.imgs)item.imgs=[];}));
-        saveDB();
-        renderAll();
-        showSec('overview');
-        alert('✅ 匯入成功！知識庫已更新。');
-      } catch(e) {
-        alert('❌ 格式錯誤，請確認選取的是正確的 homeangel-data.json 檔案。');
-      }
-    };
-    reader.readAsText(file);
-  };
-  input.click();
+  document.getElementById('importText').value = '';
+  document.getElementById('importErr').style.display = 'none';
+  document.getElementById('importModal').classList.add('show');
+}
+
+function doImport(){
+  const raw = document.getElementById('importText').value.trim();
+  const errEl = document.getElementById('importErr');
+  errEl.style.display = 'none';
+  try {
+    // 支援直接貼 JSON 或帶 marker 的格式
+    let jsonStr = raw;
+    const m = raw.match(/__EXPORT_DATA_START__([\s\S]*?)__EXPORT_DATA_END__/);
+    if(m) jsonStr = m[1];
+    const parsed = JSON.parse(jsonStr);
+    if(!parsed.cats || !parsed.items || !parsed.overview) throw new Error('格式不符');
+    db = parsed;
+    // ensure imgs
+    Object.values(db.items).forEach(arr=>arr.forEach(item=>{if(!item.imgs)item.imgs=[];}));
+    saveDB();
+    renderAll();
+    showSec('overview');
+    document.getElementById('importModal').classList.remove('show');
+    alert('✅ 匯入成功！知識庫已更新。');
+  } catch(e) {
+    errEl.style.display = 'block';
+  }
 }
 
 // 自動從 HTML 內嵌資料載入（GitHub 同步用）
