@@ -197,6 +197,11 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
 .pw-in:focus{border-color:var(--accent);}
 .pw-err{color:#dc2626;font-size:12px;margin-top:-4px;margin-bottom:8px;display:none;}
 .hidden{display:none!important;}
+.icon-picker{display:none;position:absolute;background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.15);z-index:999;width:264px;flex-wrap:wrap;gap:4px;top:40px;left:0;}
+.icon-picker.show{display:flex;}
+.icon-opt{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:6px;cursor:pointer;transition:background .1s;}
+.icon-opt:hover{background:var(--accent-bg);}
+.icon-picker-wrap{position:relative;}
 </style>
 </head>
 <body>
@@ -1027,17 +1032,50 @@ function saveLinks(){
 }
 
 // ── CATEGORY MODAL ──
+const ICONS = ['💬','📋','🔄','💳','👷','🔧','⚖️','📢','🔒','🏠','📌','📝','💡','🎯','🚨','✅','❌','⚠️','📞','📱','💰','🏥','🚗','⏰','📅','🔑','🌐','📊','📈','🗂️','📂','📁','🗃️','💼','🎓','👥','👤','🌟','🔔','📣','💬','🤝','🛡️','⚡','🔍','🏷️','📦','🎁','🧾','💊','🩺','🏨','✈️','🚑','🌏','📍','🏢','🖥️','📲','⌨️','🖨️','🖱️','💻','📡','🔌','🔋'];
+
+function buildIconRow(iconVal, catId){
+  const pickerId = 'picker_' + catId;
+  return `<div class="icon-picker-wrap">
+    <button type="button" class="fi cat-icon-btn" style="width:44px;height:36px;font-size:18px;text-align:center;cursor:pointer;border:1px solid var(--border);border-radius:7px;background:var(--main-bg);" 
+      onclick="toggleIconPicker('${pickerId}',this)" data-icon="${iconVal}">${iconVal}</button>
+    <input type="hidden" class="cat-icon" value="${iconVal}">
+    <div class="icon-picker" id="${pickerId}">
+      ${ICONS.map(ic=>`<span class="icon-opt" onclick="selectIcon('${pickerId}',this,'${ic}')">${ic}</span>`).join('')}
+    </div>
+  </div>`;
+}
+
+function toggleIconPicker(id, btn){
+  document.querySelectorAll('.icon-picker.show').forEach(p=>{if(p.id!==id)p.classList.remove('show');});
+  document.getElementById(id).classList.toggle('show');
+  event.stopPropagation();
+}
+
+function selectIcon(pickerId, optEl, icon){
+  const picker = document.getElementById(pickerId);
+  const wrap = picker.closest('.icon-picker-wrap');
+  wrap.querySelector('.cat-icon-btn').textContent = icon;
+  wrap.querySelector('.cat-icon-btn').dataset.icon = icon;
+  wrap.querySelector('.cat-icon').value = icon;
+  picker.classList.remove('show');
+}
+
+// 點其他地方關閉選擇器
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.icon-picker.show').forEach(p=>p.classList.remove('show'));
+});
+
 function openCatModal(){
   const cl=document.getElementById('catList');cl.innerHTML='';
   db.cats.forEach((cat,i)=>{
     const d=document.createElement('div');d.dataset.id=cat.id;d.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;background:var(--main-bg);border:1px solid var(--border);border-radius:7px;padding:9px 10px;';
     d.innerHTML=`<span style="cursor:grab;color:var(--text-muted)">⠿</span>
-      <input class="fi cat-icon" value="${esc(cat.icon)}" style="width:48px;text-align:center">
+      ${buildIconRow(cat.icon, 'cat_'+i)}
       <input class="fi cat-name" value="${esc(cat.name)}" style="flex:1">
       <button class="lr-rm" onclick="removeCatRow(this,'${cat.id}')">×</button>`;
     cl.appendChild(d);
   });
-  // drag within modal
   setupCatListDrag();
   document.getElementById('catModal').classList.add('show');
 }
@@ -1055,9 +1093,10 @@ function setupCatListDrag(){
 function addCatRow(){
   const cl=document.getElementById('catList');
   const id='cat_'+Date.now();
+  const pickId='picker_new_'+Date.now();
   const d=document.createElement('div');d.dataset.id=id;d.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;background:var(--main-bg);border:1px solid var(--border);border-radius:7px;padding:9px 10px;';
   d.innerHTML=`<span style="cursor:grab;color:var(--text-muted)">⠿</span>
-    <input class="fi cat-icon" value="📁" style="width:48px;text-align:center">
+    ${buildIconRow('📁', pickId)}
     <input class="fi cat-name" value="新分類" style="flex:1">
     <button class="lr-rm" onclick="removeCatRow(this,'${id}')">×</button>`;
   cl.appendChild(d);setupCatListDrag();
