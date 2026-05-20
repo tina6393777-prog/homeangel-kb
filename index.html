@@ -202,6 +202,76 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
 .icon-opt{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:6px;cursor:pointer;transition:background .1s;}
 .icon-opt:hover{background:var(--accent-bg);}
 .icon-picker-wrap{position:relative;}
+
+/* ── QUIZ ── */
+.quiz-banner{background:linear-gradient(135deg,#1a1d2e 0%,#2d1f3d 50%,#1a2038 100%);border-radius:14px;padding:36px 30px;color:#fff;text-align:center;max-width:520px;margin:0 auto;}
+.quiz-banner-icon{font-size:48px;margin-bottom:10px;animation:quizBounce 2s ease-in-out infinite;}
+@keyframes quizBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.quiz-banner-title{font-size:22px;font-weight:800;margin-bottom:6px;letter-spacing:.02em;}
+.quiz-banner-desc{font-size:14px;color:#a8b4cc;margin-bottom:22px;line-height:1.6;}
+.quiz-setup-info{display:flex;justify-content:center;gap:18px;margin-bottom:22px;flex-wrap:wrap;}
+.quiz-info-item{display:flex;align-items:center;gap:5px;font-size:13px;color:#c9d1e0;background:rgba(255,255,255,.07);padding:6px 14px;border-radius:20px;}
+.quiz-info-icon{font-size:15px;}
+.quiz-q-select{margin-bottom:22px;}
+.quiz-q-label{font-size:12px;color:#8899bb;display:block;margin-bottom:8px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.quiz-q-btns{display:flex;gap:8px;justify-content:center;}
+.quiz-q-btn{padding:8px 22px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#c9d1e0;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;}
+.quiz-q-btn:hover{background:rgba(255,255,255,.12);color:#fff;}
+.quiz-q-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 3px 12px rgba(232,93,47,.35);}
+.quiz-start-btn{padding:12px 40px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),#ff7a52);color:#fff;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;box-shadow:0 4px 16px rgba(232,93,47,.3);}
+.quiz-start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(232,93,47,.45);}
+
+/* progress */
+.quiz-progress-bar{height:5px;background:var(--border);border-radius:3px;margin-bottom:14px;overflow:hidden;}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#ff7a52);border-radius:3px;transition:width .4s ease;}
+.quiz-status{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:14px;font-weight:600;color:var(--text-primary);}
+.quiz-timer{margin-left:auto;color:var(--text-muted);font-size:13px;font-family:'JetBrains Mono',monospace;}
+.quiz-cat-badge{display:inline-block;font-size:12px;color:var(--text-muted);background:var(--main-bg);border:1px solid var(--border);border-radius:20px;padding:3px 12px;margin-bottom:14px;}
+
+/* question card */
+.quiz-question-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;}
+.quiz-question-text{font-size:17px;font-weight:700;color:var(--text-primary);line-height:1.6;margin-bottom:20px;}
+.quiz-options{display:flex;flex-direction:column;gap:10px;}
+.quiz-opt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;font-size:14px;line-height:1.6;color:var(--text-secondary);}
+.quiz-opt:hover{border-color:var(--accent);background:var(--accent-bg);color:var(--text-primary);}
+.quiz-opt.selected{border-color:var(--accent);background:var(--accent-bg);color:var(--text-primary);font-weight:500;}
+.quiz-opt-letter{width:28px;height:28px;border-radius:7px;background:var(--main-bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--text-muted);flex-shrink:0;transition:all .2s;}
+.quiz-opt.selected .quiz-opt-letter{background:var(--accent);color:#fff;border-color:var(--accent);}
+.quiz-opt-text{flex:1;padding-top:3px;}
+
+/* review styles */
+.quiz-opt.correct{border-color:#16a34a;background:#f0fdf4;}
+.quiz-opt.correct .quiz-opt-letter{background:#16a34a;color:#fff;border-color:#16a34a;}
+.quiz-opt.wrong{border-color:#dc2626;background:#fef2f2;}
+.quiz-opt.wrong .quiz-opt-letter{background:#dc2626;color:#fff;border-color:#dc2626;}
+.quiz-opt.correct-missed{border-color:#16a34a;background:#f0fdf4;border-style:dashed;}
+.quiz-opt.correct-missed .quiz-opt-letter{background:#16a34a;color:#fff;border-color:#16a34a;}
+
+/* nav */
+.quiz-nav{display:flex;gap:10px;justify-content:center;align-items:center;}
+.quiz-nav-btn{min-width:120px;justify-content:center;}
+.quiz-submit-btn{background:linear-gradient(135deg,#16a34a,#22c55e)!important;color:#fff!important;border:none!important;font-weight:700;}
+.quiz-submit-btn:hover{box-shadow:0 4px 16px rgba(22,163,74,.3);}
+
+/* result */
+.quiz-result-banner{background:linear-gradient(135deg,#1a1d2e 0%,#1a2038 100%);border-radius:14px;padding:32px;color:#fff;text-align:center;margin-bottom:18px;}
+.quiz-result-emoji{font-size:52px;margin-bottom:8px;}
+.quiz-result-score{font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.quiz-result-unit{font-size:18px;font-weight:400;color:#8899bb;margin-left:2px;}
+.quiz-result-detail{font-size:14px;color:#a8b4cc;margin-top:6px;}
+.quiz-result-time{font-size:13px;color:#6b7591;margin-top:4px;}
+.quiz-result-actions{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+
+/* review card */
+.quiz-review-card{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:12px;}
+.quiz-review-card.wrong-card{border-left:4px solid #dc2626;}
+.quiz-review-card.right-card{border-left:4px solid #16a34a;}
+.quiz-review-q{font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.quiz-review-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.quiz-review-badge.correct-badge{background:#dcfce7;color:#15803d;}
+.quiz-review-badge.wrong-badge{background:#fee2e2;color:#b91c1c;}
+.quiz-review-answer{font-size:13px;color:var(--text-secondary);line-height:1.8;margin-top:8px;padding:10px 12px;background:var(--main-bg);border-radius:8px;white-space:pre-wrap;}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 </style>
 </head>
 <body>
@@ -231,6 +301,10 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
       <button class="nav-label-btn edit-only hidden" title="管理分類" onclick="openCatModal()">⚙️</button>
     </div>
     <div id="navCats"></div>
+    <div class="nav-label">工具</div>
+    <div class="nav-item" data-sec="quiz" onclick="startQuizSetup()">
+      <span class="nav-icon">📝</span> 隨堂測驗
+    </div>
   </div>
 </div>
 
@@ -285,6 +359,66 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
         <div class="sr-cnt" id="srCnt"></div>
       </div>
       <div class="qa-list" id="list-search"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div id="sec-quiz" class="hidden">
+      <!-- 測驗起始畫面 -->
+      <div id="quizSetup">
+        <div class="quiz-banner">
+          <div class="quiz-banner-icon">📝</div>
+          <div class="quiz-banner-title">隨堂測驗</div>
+          <div class="quiz-banner-desc">從知識庫隨機抽題，測試你對家天使服務的熟悉度！</div>
+          <div class="quiz-setup-info">
+            <div class="quiz-info-item"><span class="quiz-info-icon">📚</span><span>全分類混合出題</span></div>
+            <div class="quiz-info-item"><span class="quiz-info-icon">🎯</span><span>每題 4 選 1</span></div>
+            <div class="quiz-info-item"><span class="quiz-info-icon">📊</span><span>答完立即看成績與解析</span></div>
+          </div>
+          <div class="quiz-q-select">
+            <label class="quiz-q-label">出題數量</label>
+            <div class="quiz-q-btns">
+              <button class="quiz-q-btn" onclick="selectQuizCount(this,10)">10 題</button>
+              <button class="quiz-q-btn active" onclick="selectQuizCount(this,15)">15 題</button>
+              <button class="quiz-q-btn" onclick="selectQuizCount(this,20)">20 題</button>
+            </div>
+          </div>
+          <button class="quiz-start-btn" onclick="beginQuiz()">🚀 開始測驗</button>
+        </div>
+      </div>
+      <!-- 測驗進行中 -->
+      <div id="quizActive" class="hidden">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+        <div class="quiz-status">
+          <span id="quizQNum">第 1 題</span>
+          <span id="quizQTotal">/ 15</span>
+          <span class="quiz-timer" id="quizTimer">⏱ 0:00</span>
+        </div>
+        <div class="quiz-cat-badge" id="quizCatBadge">💬 新客諮詢</div>
+        <div class="quiz-question-card">
+          <div class="quiz-question-text" id="quizQText">問題內容</div>
+          <div class="quiz-options" id="quizOptions"></div>
+        </div>
+        <div class="quiz-nav">
+          <button class="btn btn-ghost quiz-nav-btn" id="quizPrevBtn" onclick="quizPrev()" disabled>← 上一題</button>
+          <button class="btn btn-primary quiz-nav-btn" id="quizNextBtn" onclick="quizNext()">下一題 →</button>
+          <button class="btn quiz-nav-btn quiz-submit-btn hidden" id="quizSubmitBtn" onclick="submitQuiz()">📊 交卷看成績</button>
+        </div>
+      </div>
+      <!-- 測驗結果 -->
+      <div id="quizResult" class="hidden">
+        <div class="quiz-result-banner" id="quizResultBanner">
+          <div class="quiz-result-emoji" id="quizResultEmoji">🎉</div>
+          <div class="quiz-result-score">得分 <span id="quizScore">85</span><span class="quiz-result-unit">分</span></div>
+          <div class="quiz-result-detail" id="quizResultDetail">答對 13 / 15 題</div>
+          <div class="quiz-result-time" id="quizResultTime">⏱ 用時 3 分 22 秒</div>
+        </div>
+        <div class="quiz-result-actions">
+          <button class="btn btn-primary" onclick="startQuizSetup()">🔄 再測一次</button>
+          <button class="btn btn-ghost" onclick="showSec('overview')">🏠 回首頁</button>
+        </div>
+        <div class="sec-hdr" style="margin-top:24px;"><div class="sec-title">📋 答題解析</div></div>
+        <div id="quizReviewList" class="qa-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -765,11 +899,14 @@ function showSec(name){
   // hide overview
   document.getElementById('sec-overview').classList.toggle('hidden',name!=='overview');
   document.getElementById('sec-search').classList.add('hidden');
+  document.getElementById('sec-quiz').classList.add('hidden');
+  // stop quiz timer if leaving quiz
+  if(name!=='quiz' && quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
   // hide all cats
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.toggle('hidden',c.id!==name);});
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.sec===name));
   const cat=db.cats.find(c=>c.id===name);
-  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name);
+  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name==='quiz'?'📝 隨堂測驗':name);
   curSec=name;
   document.getElementById('contentArea').scrollTop=0;
 }
@@ -788,6 +925,7 @@ function doSearch(q){
   });
   // hide all
   document.getElementById('sec-overview').classList.add('hidden');
+  document.getElementById('sec-quiz').classList.add('hidden');
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
   document.getElementById('sec-search').classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -1193,6 +1331,242 @@ function doLogout(){
   document.querySelectorAll('.edit-only').forEach(el => el.classList.add('hidden'));
   document.getElementById('adminModal').classList.remove('show');
   renderAll();
+}
+
+// ── QUIZ SYSTEM ──
+let quizQuestions = [];
+let quizCurrent = 0;
+let quizAnswers = []; // user's selected answer index per question
+let quizCount = 15;
+let quizTimerInterval = null;
+let quizStartTime = 0;
+
+function selectQuizCount(btn, n){
+  quizCount = n;
+  document.querySelectorAll('.quiz-q-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function startQuizSetup(){
+  // show quiz section
+  document.getElementById('sec-overview').classList.add('hidden');
+  document.getElementById('sec-search').classList.add('hidden');
+  db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
+  document.getElementById('sec-quiz').classList.remove('hidden');
+  document.getElementById('quizSetup').classList.remove('hidden');
+  document.getElementById('quizActive').classList.add('hidden');
+  document.getElementById('quizResult').classList.add('hidden');
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.sec==='quiz'));
+  document.getElementById('topbarTitle').textContent='📝 隨堂測驗';
+  curSec='quiz';
+  document.getElementById('contentArea').scrollTop=0;
+  // stop timer if running
+  if(quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
+}
+
+function beginQuiz(){
+  // collect all QA items
+  let allItems = [];
+  db.cats.forEach(cat=>{
+    (db.items[cat.id]||[]).forEach(item=>{
+      // only include items that have both Q and A
+      if(item.q && item.a && item.a.trim().length > 10){
+        allItems.push({...item, catId:cat.id, catIcon:cat.icon, catName:cat.name});
+      }
+    });
+  });
+
+  if(allItems.length < 4){
+    alert('題庫不足 4 題，無法產生測驗。請先新增更多 QA 條目。');
+    return;
+  }
+
+  // shuffle and pick
+  shuffleArr(allItems);
+  const picked = allItems.slice(0, Math.min(quizCount, allItems.length));
+
+  // generate quiz questions with options
+  quizQuestions = picked.map(item=>{
+    // correct answer: strip syntax for display
+    const correctA = stripSyntax(item.a);
+    // pick 3 wrong answers from other items
+    const others = allItems.filter(x=>x.id!==item.id);
+    shuffleArr(others);
+    const wrongAs = others.slice(0,3).map(x=>stripSyntax(x.a));
+    // build options
+    const options = [{text: correctA, correct: true}, ...wrongAs.map(w=>({text:w, correct:false}))];
+    shuffleArr(options);
+    return {
+      q: item.q,
+      fullA: item.a,
+      catIcon: item.catIcon,
+      catName: item.catName,
+      options: options,
+      correctIdx: options.findIndex(o=>o.correct)
+    };
+  });
+
+  quizCurrent = 0;
+  quizAnswers = new Array(quizQuestions.length).fill(-1);
+
+  // show active quiz
+  document.getElementById('quizSetup').classList.add('hidden');
+  document.getElementById('quizActive').classList.remove('hidden');
+  document.getElementById('quizResult').classList.add('hidden');
+
+  // start timer
+  quizStartTime = Date.now();
+  if(quizTimerInterval)clearInterval(quizTimerInterval);
+  quizTimerInterval = setInterval(updateQuizTimer, 1000);
+  updateQuizTimer();
+
+  renderQuizQuestion();
+}
+
+function stripSyntax(text){
+  if(!text)return '';
+  // remove highlight syntax and bold
+  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'');
+  t = t.replace(/\*\*/g,'');
+  // truncate to ~120 chars for option display
+  if(t.length > 120) t = t.substring(0,117) + '…';
+  return t.trim();
+}
+
+function shuffleArr(arr){
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+}
+
+function updateQuizTimer(){
+  const elapsed = Math.floor((Date.now()-quizStartTime)/1000);
+  const m = Math.floor(elapsed/60);
+  const s = elapsed%60;
+  document.getElementById('quizTimer').textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function renderQuizQuestion(){
+  const q = quizQuestions[quizCurrent];
+  const total = quizQuestions.length;
+  // progress
+  document.getElementById('quizProgressFill').style.width = ((quizCurrent+1)/total*100)+'%';
+  document.getElementById('quizQNum').textContent = `第 ${quizCurrent+1} 題`;
+  document.getElementById('quizQTotal').textContent = `/ ${total}`;
+  document.getElementById('quizCatBadge').textContent = q.catIcon + ' ' + q.catName;
+  document.getElementById('quizQText').textContent = q.q;
+
+  // options
+  const letters = ['A','B','C','D'];
+  const optsEl = document.getElementById('quizOptions');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt,i)=>{
+    const d = document.createElement('div');
+    d.className = 'quiz-opt' + (quizAnswers[quizCurrent]===i?' selected':'');
+    d.onclick = ()=>selectQuizAnswer(i);
+    d.innerHTML = `<div class="quiz-opt-letter">${letters[i]}</div><div class="quiz-opt-text">${esc(opt.text)}</div>`;
+    optsEl.appendChild(d);
+  });
+
+  // nav buttons
+  document.getElementById('quizPrevBtn').disabled = quizCurrent===0;
+  if(quizCurrent===total-1){
+    document.getElementById('quizNextBtn').classList.add('hidden');
+    document.getElementById('quizSubmitBtn').classList.remove('hidden');
+  }else{
+    document.getElementById('quizNextBtn').classList.remove('hidden');
+    document.getElementById('quizSubmitBtn').classList.add('hidden');
+  }
+  document.getElementById('contentArea').scrollTop=0;
+}
+
+function selectQuizAnswer(idx){
+  quizAnswers[quizCurrent] = idx;
+  document.querySelectorAll('.quiz-opt').forEach((el,i)=>{
+    el.classList.toggle('selected', i===idx);
+  });
+}
+
+function quizPrev(){
+  if(quizCurrent>0){quizCurrent--;renderQuizQuestion();}
+}
+function quizNext(){
+  if(quizAnswers[quizCurrent]===-1){
+    // shake effect
+    document.querySelector('.quiz-question-card').style.animation='shake .3s';
+    setTimeout(()=>document.querySelector('.quiz-question-card').style.animation='',300);
+    return;
+  }
+  if(quizCurrent<quizQuestions.length-1){quizCurrent++;renderQuizQuestion();}
+}
+
+function submitQuiz(){
+  // check unanswered
+  const unanswered = quizAnswers.filter(a=>a===-1).length;
+  if(unanswered>0){
+    if(!confirm(`還有 ${unanswered} 題未作答，確定交卷嗎？`))return;
+  }
+
+  // stop timer
+  clearInterval(quizTimerInterval);quizTimerInterval=null;
+  const elapsed = Math.floor((Date.now()-quizStartTime)/1000);
+  const m = Math.floor(elapsed/60);
+  const s = elapsed%60;
+
+  // calculate score
+  let correct = 0;
+  quizQuestions.forEach((q,i)=>{
+    if(quizAnswers[i]===q.correctIdx) correct++;
+  });
+  const score = Math.round(correct/quizQuestions.length*100);
+
+  // emoji & color
+  let emoji='🎉', bgGrad='linear-gradient(135deg,#064e3b 0%,#1a2038 100%)';
+  if(score>=90){emoji='🏆';}
+  else if(score>=70){emoji='😊';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#1e3a5f 100%)';}
+  else if(score>=50){emoji='🤔';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#3d2b1f 100%)';}
+  else{emoji='😰';bgGrad='linear-gradient(135deg,#2d1b1b 0%,#1a1d2e 100%)';}
+
+  // show result
+  document.getElementById('quizActive').classList.add('hidden');
+  document.getElementById('quizResult').classList.remove('hidden');
+  document.getElementById('quizResultBanner').style.background=bgGrad;
+  document.getElementById('quizResultEmoji').textContent=emoji;
+  document.getElementById('quizScore').textContent=score;
+  document.getElementById('quizResultDetail').textContent=`答對 ${correct} / ${quizQuestions.length} 題`;
+  document.getElementById('quizResultTime').textContent=`⏱ 用時 ${m} 分 ${s.toString().padStart(2,'0')} 秒`;
+
+  // render review
+  const reviewList = document.getElementById('quizReviewList');
+  reviewList.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  quizQuestions.forEach((q,i)=>{
+    const isCorrect = quizAnswers[i]===q.correctIdx;
+    const card = document.createElement('div');
+    card.className = 'quiz-review-card ' + (isCorrect?'right-card':'wrong-card');
+    
+    let optsHTML = q.options.map((opt,oi)=>{
+      let cls = 'quiz-opt';
+      if(oi===q.correctIdx && oi===quizAnswers[i]) cls+=' correct'; // answered correct
+      else if(oi===q.correctIdx) cls+=' correct-missed'; // correct but not chosen
+      else if(oi===quizAnswers[i]) cls+=' wrong'; // wrong choice
+      return `<div class="${cls}" style="cursor:default;padding:10px 12px;margin-bottom:4px;">
+        <div class="quiz-opt-letter">${letters[oi]}</div>
+        <div class="quiz-opt-text" style="font-size:13px;">${esc(opt.text)}</div>
+      </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="quiz-review-q">
+        <span>${i+1}. ${esc(q.q)}</span>
+        <span class="quiz-review-badge ${isCorrect?'correct-badge':'wrong-badge'}">${isCorrect?'✓ 正確':'✗ 答錯'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${q.catIcon} ${q.catName}</div>
+      ${optsHTML}
+      ${!isCorrect?`<div class="quiz-review-answer"><strong>📖 完整答案：</strong>\n${renderA(q.fullA)}</div>`:''}
+    `;
+    reviewList.appendChild(card);
+  });
+
+  document.getElementById('contentArea').scrollTop=0;
 }
 
 // ── INIT ──
