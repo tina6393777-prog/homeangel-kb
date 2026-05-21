@@ -1364,61 +1364,27 @@ function startQuizSetup(){
 
 // ── 智慧出題引擎 ──
 //
-// 題目出 Q → 選項是 4 個「答案摘要」→ 選正確的答案
-// 摘要以 highlight 關鍵詞為核心，前後擷取成 20~40 字短句
-// 反向題：選項用寫死的服務清單
+// 設計：題目=完整問句(Q) → 選項=4個簡短答案重點(highlight)
+// highlight 是後台手動標記的 SOP 關鍵詞，平均10字、最長36字
+// 品質穩定、長度均勻、不會截斷
 //
 
 function cleanHL(t){return(t||'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');}
 
-// 從答案產生一句 20~40 字的摘要選項
-function makeOptionText(rawA){
-  if(!rawA) return '';
-  // 找 highlight 關鍵詞
-  var hlRe=/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g, m, keyword='';
-  while((m=hlRe.exec(rawA))!==null){
-    var inner=cleanHL(m[1]).trim();
-    if(inner.length>=4 && inner.length<=30){keyword=inner;break;}
+// 從答案中取得「合格的 highlight 關鍵詞」當正確選項
+function getValidHL(rawA){
+  if(!rawA) return null;
+  var re=/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g, m;
+  while((m=re.exec(rawA))!==null){
+    var h=m[1].replace(/\*\*/g,'').trim();
+    if(h.length<4 || h.length>36) continue;
+    if(/^[①-⑧]/.test(h)) continue;
+    if(/[：:]$/.test(h)) continue;
+    if(/^[\d\-()（）\s]+$/.test(h)) continue;
+    if(/）：$/.test(h)) continue;
+    return h;
   }
-  // 去掉所有語法
-  var clean=cleanHL(rawA);
-  // 拆行
-  var lines=clean.split('\n');
-  for(var i=0;i<lines.length;i++){
-    var line=lines[i].trim();
-    // 清前綴雜訊
-    line=line.replace(/^[\s※．.·、•\-–—:：\d①-⑧()（）❌⚠️📌💰🚗📅⏰💳🔴🟠🟡🟢⚪■□▪▫⃣\uFE0F]+/g,'').trim();
-    line=line.replace(/^(?:[\u2600-\u27BF]|[\uD83C-\uDBFF][\uDC00-\uDFFF])+\s*/,'').trim();
-    line=line.replace(/[：:。]$/,'').trim();
-    if(line.length<10) continue;
-    // 如果有 keyword 且行包含它
-    if(keyword && line.indexOf(keyword)>=0){
-      if(line.length<=40) return line;
-      // 以 keyword 為中心截取
-      var idx=line.indexOf(keyword);
-      var start=Math.max(0, idx-6);
-      // 往前找到句子邊界（，。；）
-      if(start>0){
-        for(var j=idx;j>=Math.max(0,idx-15);j--){
-          if('，。；！？、'.indexOf(line[j])>=0){start=j+1;break;}
-        }
-      }
-      var end=Math.min(line.length, start+40);
-      // 往後找到句子邊界
-      for(var j=start+30;j<Math.min(line.length,start+45);j++){
-        if('，。；！？、'.indexOf(line[j])>=0){end=j+1;break;}
-      }
-      var snippet=line.substring(start,end).trim();
-      if(snippet.length<15) continue;
-      return snippet;
-    }
-    // 沒有 keyword 就用第一行合適的
-    if(!keyword && line.length>=15 && line.length<=40) return line;
-    if(!keyword && line.length>40) return line.substring(0,37)+'…';
-  }
-  // fallback
-  var fb=cleanHL(rawA).replace(/\n/g,' ').substring(0,35).trim();
-  return fb+'…';
+  return null;
 }
 
 // 反向題
@@ -1439,17 +1405,19 @@ var POS_SVC=['洗澡沐浴、擦澡、床上洗頭','陪同就醫、協助掛號
 // 出題
 function makeQuizItems(allItems){
   var pool=[];
-  // 基本題：Q → 選答案摘要
+
   allItems.forEach(function(item){
-    var opt=makeOptionText(item.a);
-    if(!opt || opt.length<10) return;
-    pool.push({type:'basic', qText:item.q, correctOpt:opt, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
-  });
-  // 反向題
-  allItems.forEach(function(item){
+    // 基本題：Q是完整問句、正確選項是highlight
+    var hl=getValidHL(item.a);
+    if(hl && item.q.length>=5){
+      pool.push({type:'basic', qText:item.q, correctOpt:hl, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
+    }
+
+    // 反向題
     var bans=extractBanList(item.a);
-    if(bans.length<3) return;
-    pool.push({type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？', correctOpt:bans[Math.floor(Math.random()*bans.length)], banPool:bans, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
+    if(bans.length>=3){
+      pool.push({type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？', correctOpt:bans[Math.floor(Math.random()*bans.length)], banPool:bans, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
+    }
   });
   return pool;
 }
@@ -1458,36 +1426,32 @@ function makeQuizItems(allItems){
 function buildQuizQuestion(variant, allItems){
   var opts=[{text:variant.correctOpt, correct:true}];
   var used={};
-  used[variant.correctOpt.substring(0,12)]=1;
+  used[variant.correctOpt]=1;
 
   if(variant.type==='negative'){
-    // 反向題：干擾=可以做的事
-    if(variant.banPool) variant.banPool.forEach(function(b){used[b.substring(0,12)]=1;});
+    // 反向題干擾=可以做的事
+    if(variant.banPool) variant.banPool.forEach(function(b){used[b]=1;});
     var svc=[].concat(POS_SVC); shuffleArr(svc);
     for(var i=0;i<svc.length&&opts.length<4;i++){
-      if(!used[svc[i].substring(0,12)]){opts.push({text:svc[i],correct:false});used[svc[i].substring(0,12)]=1;}
+      if(!used[svc[i]]){opts.push({text:svc[i],correct:false});used[svc[i]]=1;}
     }
   } else {
-    // 基本題：干擾=其他 QA 的答案摘要（同分類優先）
+    // 基本題干擾=其他 QA 的 highlight（同分類優先）
     var same=allItems.filter(function(x){return x.catId===variant.sourceCatId && x.id!==variant.sourceId;});
     var diff=allItems.filter(function(x){return x.catId!==variant.sourceCatId && x.id!==variant.sourceId;});
     shuffleArr(same); shuffleArr(diff);
     var cands=[].concat(same,diff);
     for(var i=0;i<cands.length&&opts.length<4;i++){
-      var dOpt=makeOptionText(cands[i].a);
-      if(!dOpt || dOpt.length<10) continue;
-      var sig=dOpt.substring(0,12);
-      if(used[sig]) continue;
-      // 長度跟正確答案差距不超過 2 倍
-      if(dOpt.length < variant.correctOpt.length*0.4) continue;
-      if(dOpt.length > variant.correctOpt.length*2.2) continue;
-      used[sig]=1;
-      opts.push({text:dOpt,correct:false});
+      var dHL=getValidHL(cands[i].a);
+      if(!dHL) continue;
+      if(used[dHL]) continue;
+      used[dHL]=1;
+      opts.push({text:dHL, correct:false});
     }
-    // 備用
-    var fbs=['透過 APP 線上預約，無法電話派遣','費用由平台第三方金流收取，非現金交易','照服員由客戶自行比較選擇，非平台指派','服務前需線上付款完成，訂單才成立','客戶可在 APP 查看照服員的資歷與評價','服務結束後客戶可透過聊聊持續溝通三天'];
+    // 備用（萬一 highlight 不夠 3 個干擾）
+    var fbs=['透過 APP 線上預約媒合','費用由第三方金流收取','照服員由客戶自行選擇','服務前需線上付款完成','可在 APP 查看照服員資歷與評價','服務結束後可透過聊聊溝通'];
     shuffleArr(fbs);
-    while(opts.length<4){var fb=fbs.pop()||'以上皆非';if(!used[fb.substring(0,12)]){opts.push({text:fb,correct:false});used[fb.substring(0,12)]=1;}}
+    while(opts.length<4){var fb=fbs.pop()||'以上皆非';if(!used[fb]){opts.push({text:fb,correct:false});used[fb]=1;}}
   }
 
   shuffleArr(opts);
