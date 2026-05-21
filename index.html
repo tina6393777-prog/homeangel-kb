@@ -1364,31 +1364,66 @@ function startQuizSetup(){
 
 // ── 智慧出題引擎 ──
 //
-// 最終版：選項只用「問題Q」，絕不從答案抽片段
-// 題型1 配對題：題幹=答案重點 → 選項=4個Q → 選正確Q
-// 題型2 反向題：選項=寫死的服務清單
+// 題目出 Q → 選項是 4 個「答案摘要」→ 選正確的答案
+// 摘要以 highlight 關鍵詞為核心，前後擷取成 20~40 字短句
+// 反向題：選項用寫死的服務清單
 //
 
-function cleanHL(t){ return (t||'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,''); }
+function cleanHL(t){return(t||'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');}
 
-function getHint(raw){
-  if(!raw) return '';
-  var re=/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g, m;
-  while((m=re.exec(raw))!==null){
-    var s=cleanHL(m[1]).trim().replace(/^[\s※．.·、•\-–—:：\d①-⑧()（）❌⚠️📌💰🚗📅⏰💳■□▪▫]+/,'').trim().replace(/[：:，,。]$/,'').trim();
-    if(s.length>=4 && s.length<=35) return s;
+// 從答案產生一句 20~40 字的摘要選項
+function makeOptionText(rawA){
+  if(!rawA) return '';
+  // 找 highlight 關鍵詞
+  var hlRe=/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g, m, keyword='';
+  while((m=hlRe.exec(rawA))!==null){
+    var inner=cleanHL(m[1]).trim();
+    if(inner.length>=4 && inner.length<=30){keyword=inner;break;}
   }
-  var lines=cleanHL(raw).split('\n');
+  // 去掉所有語法
+  var clean=cleanHL(rawA);
+  // 拆行
+  var lines=clean.split('\n');
   for(var i=0;i<lines.length;i++){
-    var s=lines[i].trim().replace(/^[\s※．.·、•\-–—:：\d①-⑧()（）❌⚠️📌💰🚗📅⏰💳🔴🟠🟡🟢⚪■□▪▫]+/,'').trim();
-    s=s.replace(/[：:，,。]$/,'').trim();
-    if(s.length>=6 && s.length<=35) return s;
+    var line=lines[i].trim();
+    // 清前綴雜訊
+    line=line.replace(/^[\s※．.·、•\-–—:：\d①-⑧()（）❌⚠️📌💰🚗📅⏰💳🔴🟠🟡🟢⚪■□▪▫⃣\uFE0F]+/g,'').trim();
+    line=line.replace(/^(?:[\u2600-\u27BF]|[\uD83C-\uDBFF][\uDC00-\uDFFF])+\s*/,'').trim();
+    line=line.replace(/[：:。]$/,'').trim();
+    if(line.length<10) continue;
+    // 如果有 keyword 且行包含它
+    if(keyword && line.indexOf(keyword)>=0){
+      if(line.length<=40) return line;
+      // 以 keyword 為中心截取
+      var idx=line.indexOf(keyword);
+      var start=Math.max(0, idx-6);
+      // 往前找到句子邊界（，。；）
+      if(start>0){
+        for(var j=idx;j>=Math.max(0,idx-15);j--){
+          if('，。；！？、'.indexOf(line[j])>=0){start=j+1;break;}
+        }
+      }
+      var end=Math.min(line.length, start+40);
+      // 往後找到句子邊界
+      for(var j=start+30;j<Math.min(line.length,start+45);j++){
+        if('，。；！？、'.indexOf(line[j])>=0){end=j+1;break;}
+      }
+      var snippet=line.substring(start,end).trim();
+      if(snippet.length<15) continue;
+      return snippet;
+    }
+    // 沒有 keyword 就用第一行合適的
+    if(!keyword && line.length>=15 && line.length<=40) return line;
+    if(!keyword && line.length>40) return line.substring(0,37)+'…';
   }
-  return cleanHL(raw).replace(/\n/g,' ').substring(0,30).trim()+'…';
+  // fallback
+  var fb=cleanHL(rawA).replace(/\n/g,' ').substring(0,35).trim();
+  return fb+'…';
 }
 
-function extractBanList(raw){
-  var items=[], lines=cleanHL(raw).split('\n');
+// 反向題
+function extractBanList(rawA){
+  var items=[], lines=cleanHL(rawA).split('\n');
   for(var i=0;i<lines.length;i++){
     var L=lines[i].trim();
     if(L.indexOf('❌')!==0) continue;
@@ -1401,53 +1436,62 @@ function extractBanList(raw){
 
 var POS_SVC=['洗澡沐浴、擦澡、床上洗頭','陪同就醫、協助掛號、陪診聽取醫囑','餐食照顧、備餐、加熱、餵食','清潔管路（鼻胃管/導尿管）、倒尿袋','翻身拍背、移位協助、肢體關節活動','代購物品、代辦事項（郵寄、代領）','陪同外出活動、心靈陪伴、書報代讀','修剪指甲、大小便清潔（含尿布更換）','污物清潔（洗衣機洗）','照顧技巧指導（外籍看護/家屬）'];
 
+// 出題
 function makeQuizItems(allItems){
   var pool=[];
-
-  // 配對題：每個 QA 出一題
+  // 基本題：Q → 選答案摘要
   allItems.forEach(function(item){
-    var hint=getHint(item.a);
-    if(!hint||hint.length<4) return;
-    pool.push({type:'match', qText:'以下哪個問題的正確回覆包含「'+hint+'」？', correctQ:item.q, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
+    var opt=makeOptionText(item.a);
+    if(!opt || opt.length<10) return;
+    pool.push({type:'basic', qText:item.q, correctOpt:opt, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
   });
-
   // 反向題
   allItems.forEach(function(item){
     var bans=extractBanList(item.a);
     if(bans.length<3) return;
-    pool.push({type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？', correctKey:bans[Math.floor(Math.random()*bans.length)], banPool:bans, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
+    pool.push({type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？', correctOpt:bans[Math.floor(Math.random()*bans.length)], banPool:bans, fullA:item.a, catIcon:item.catIcon, catName:item.catName, sourceId:item.id, sourceCatId:item.catId});
   });
-
   return pool;
 }
 
+// 組裝選項
 function buildQuizQuestion(variant, allItems){
+  var opts=[{text:variant.correctOpt, correct:true}];
+  var used={};
+  used[variant.correctOpt.substring(0,12)]=1;
+
   if(variant.type==='negative'){
-    // 反向題：正確=禁止事項，干擾=可以做的事
-    var opts=[{text:variant.correctKey, correct:true}];
-    var used={}; (variant.banPool||[]).forEach(function(b){used[b]=1;});
+    // 反向題：干擾=可以做的事
+    if(variant.banPool) variant.banPool.forEach(function(b){used[b.substring(0,12)]=1;});
     var svc=[].concat(POS_SVC); shuffleArr(svc);
     for(var i=0;i<svc.length&&opts.length<4;i++){
-      if(!used[svc[i]]){opts.push({text:svc[i],correct:false}); used[svc[i]]=1;}
+      if(!used[svc[i].substring(0,12)]){opts.push({text:svc[i],correct:false});used[svc[i].substring(0,12)]=1;}
     }
-    shuffleArr(opts);
-    return {q:variant.qText, type:'negative', options:opts, correctIdx:opts.findIndex(function(o){return o.correct;}), fullA:variant.fullA, catIcon:variant.catIcon, catName:variant.catName};
+  } else {
+    // 基本題：干擾=其他 QA 的答案摘要（同分類優先）
+    var same=allItems.filter(function(x){return x.catId===variant.sourceCatId && x.id!==variant.sourceId;});
+    var diff=allItems.filter(function(x){return x.catId!==variant.sourceCatId && x.id!==variant.sourceId;});
+    shuffleArr(same); shuffleArr(diff);
+    var cands=[].concat(same,diff);
+    for(var i=0;i<cands.length&&opts.length<4;i++){
+      var dOpt=makeOptionText(cands[i].a);
+      if(!dOpt || dOpt.length<10) continue;
+      var sig=dOpt.substring(0,12);
+      if(used[sig]) continue;
+      // 長度跟正確答案差距不超過 2 倍
+      if(dOpt.length < variant.correctOpt.length*0.4) continue;
+      if(dOpt.length > variant.correctOpt.length*2.2) continue;
+      used[sig]=1;
+      opts.push({text:dOpt,correct:false});
+    }
+    // 備用
+    var fbs=['透過 APP 線上預約，無法電話派遣','費用由平台第三方金流收取，非現金交易','照服員由客戶自行比較選擇，非平台指派','服務前需線上付款完成，訂單才成立','客戶可在 APP 查看照服員的資歷與評價','服務結束後客戶可透過聊聊持續溝通三天'];
+    shuffleArr(fbs);
+    while(opts.length<4){var fb=fbs.pop()||'以上皆非';if(!used[fb.substring(0,12)]){opts.push({text:fb,correct:false});used[fb.substring(0,12)]=1;}}
   }
 
-  // 配對題：正確選項=這個Q，干擾選項=其他Q
-  var correctQ=variant.correctQ;
-  var opts=[{text:correctQ, correct:true}];
-  // 同分類優先
-  var same=allItems.filter(function(x){return x.catId===variant.sourceCatId && x.q!==correctQ;});
-  var diff=allItems.filter(function(x){return x.catId!==variant.sourceCatId && x.q!==correctQ;});
-  shuffleArr(same); shuffleArr(diff);
-  var cands=[].concat(same,diff);
-  var usedQ={}; usedQ[correctQ]=1;
-  for(var i=0;i<cands.length&&opts.length<4;i++){
-    if(!usedQ[cands[i].q]){opts.push({text:cands[i].q, correct:false}); usedQ[cands[i].q]=1;}
-  }
   shuffleArr(opts);
-  return {q:variant.qText, type:'match', options:opts, correctIdx:opts.findIndex(function(o){return o.correct;}), fullA:variant.fullA, catIcon:variant.catIcon, catName:variant.catName};
+  return {q:variant.qText, type:variant.type, options:opts, correctIdx:opts.findIndex(function(o){return o.correct;}), fullA:variant.fullA, catIcon:variant.catIcon, catName:variant.catName};
 }
 
 
@@ -1518,7 +1562,7 @@ function renderQuizQuestion(){
   document.getElementById('quizQNum').textContent = '第 '+(quizCurrent+1)+' 題';
   document.getElementById('quizQTotal').textContent = '/ '+total;
   document.getElementById('quizCatBadge').textContent = q.catIcon+' '+q.catName+
-    (q.type==='negative'?' · ⛔ 反向題':q.type==='match'?' · 🔗 配對題':'');
+    (q.type==='negative'?' · ⛔ 反向題':'');
   document.getElementById('quizQText').textContent = q.q;
 
   const letters = ['A','B','C','D'];
@@ -1619,7 +1663,7 @@ function submitQuiz(){
     const isCorrect = quizAnswers[i]===q.correctIdx;
     const card = document.createElement('div');
     card.className = 'quiz-review-card '+(isCorrect?'right-card':'wrong-card');
-    const typeLabel = q.type==='negative'?'⛔ 反向題':q.type==='match'?'🔗 配對題':'📋 基本題';
+    const typeLabel = q.type==='negative'?'⛔ 反向題':'📋 問答題';
     let optsHTML = q.options.map(function(opt,oi){
       let cls = 'quiz-opt', marker = '';
       if(oi===q.correctIdx && oi===quizAnswers[i]){cls+=' correct';marker='✓ 你的答案（正確）';}
