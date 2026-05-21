@@ -1364,44 +1364,125 @@ function startQuizSetup(){
 
 // ── 智慧出題引擎 ──
 
-// 從答案中提取「核心重點摘要」當選項文字
-function extractKeyPoint(text){
+// 清理選項文字：移除語法標記與前綴雜訊
+function cleanOptionText(text){
   if(!text)return '';
   let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
-  // 優先抓 highlight 包裹的原始重點句
-  const hlMatch = text.match(/\{hl-[yobgp]\}([^{]+)\{\/hl\}/);
+  // 清掉常見前綴符號
+  t = t.replace(/^[※．.\s·•\-–—]+/,'').trim();
+  t = t.replace(/^[\d]+[\.、）\)]\s*/,'').trim();
+  return t;
+}
+
+// 從答案中提取「第一句核心結論」當正確選項
+function extractKeyPoint(text){
+  if(!text)return '';
+  let raw = text;
+  let t = cleanOptionText(text);
   const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
-  if(hlMatch && hlMatch[1].trim().length>=4){
-    let key = hlMatch[1].trim();
-    const fullLine = lines.find(l=>l.includes(key));
-    if(fullLine && fullLine.length<=80) return fullLine;
-    if(key.length>60) key=key.substring(0,57)+'…';
-    return key;
+
+  // 策略 1：優先抓被 highlight 包住的重點
+  const hlMatches = raw.match(/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g);
+  if(hlMatches){
+    for(const m of hlMatches){
+      const inner = m.replace(/\{hl-[yobgp]\}/,'').replace(/\{\/hl\}/,'').replace(/\*\*/g,'').trim();
+      if(inner.length>=4 && inner.length<=70 && !/^以下|^：/.test(inner)){
+        return cleanOptionText(inner);
+      }
+    }
   }
+
+  // 策略 2：找第一行有實質內容的句子（跳過標題行、純 emoji 行）
   for(const line of lines){
-    const clean = line.replace(/^[①-⑧❌⚠️📌💰🚗📅⏰💳🔴🟠🟡🟢⚪•\-\d\.]+\s*/,'').trim();
-    if(clean.length>=6 && clean.length<=80 && !/^[（\(]/.test(clean)) return clean;
+    let clean = cleanOptionText(line);
+    // 跳過純標題行或列表標頭
+    if(/^[①-⑧]/.test(clean)) continue;
+    if(clean.endsWith('：') || clean.endsWith(':')) continue;
+    if(clean.length>=8 && clean.length<=75){
+      return clean;
+    }
   }
-  const fallback = lines.join(' ').substring(0,70);
-  return fallback+(fallback.length>=70?'…':'');
+
+  // 策略 3：第一句截斷
+  const first = lines[0] || '';
+  const clean = cleanOptionText(first);
+  if(clean.length>75) return clean.substring(0,72)+'…';
+  return clean;
+}
+
+// 從答案中抓「不能做的具體事項」
+function extractNegativeItems(text){
+  const items = [];
+  const t = cleanOptionText(text);
+  const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
+  for(const line of lines){
+    if(/^❌/.test(line)){
+      let clean = line.replace(/^❌\s*/,'').trim();
+      clean = cleanOptionText(clean);
+      if(clean.length>=3 && clean.length<=50) items.push(clean);
+    }
+    else if(/不能|不行|無法|不含|不提供/.test(line)){
+      let clean = cleanOptionText(line);
+      if(clean.length>=5 && clean.length<=50 && !clean.endsWith('：')) items.push(clean);
+    }
+  }
+  return items;
+}
+
+// 從答案中抓「可以做的具體事項」（給反向題當干擾用）
+function extractPositiveItems(text){
+  const items = [];
+  const t = cleanOptionText(text);
+  const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
+  for(const line of lines){
+    // 跳過否定句
+    if(/❌|不能|不行|無法|不含|不提供/.test(line)) continue;
+    // 找有實質動作描述的句子
+    let clean = cleanOptionText(line);
+    if(clean.endsWith('：') || clean.endsWith(':')) continue;
+    if(/^[①-⑧]/.test(clean)){
+      clean = clean.replace(/^[①-⑧]\s*/,'').trim();
+      // 只取 – 前面的標題部分
+      const dashIdx = clean.indexOf(' – ');
+      if(dashIdx>0) clean = clean.substring(0, dashIdx).trim();
+    }
+    if(clean.length>=4 && clean.length<=50) items.push(clean);
+  }
+  return items;
+}
+
+// 從答案中找包含特定數字的句子
+function findNumberSentence(text, numStr){
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
+  for(const line of lines){
+    if(line.includes(numStr)){
+      let clean = cleanOptionText(line);
+      if(clean.length<=75) return clean;
+      return clean.substring(0,72)+'…';
+    }
+  }
+  return numStr;
 }
 
 // 產生多種出題角度
 function generateQuestionVariants(item, catIcon, catName){
   const variants = [];
-  const cleanA = item.a.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  const cleanA = cleanOptionText(item.a);
 
-  // 類型 1：原始 Q → 選正確重點
+  // 類型 1：基本題 — 原始 Q，選正確重點
   variants.push({
     type:'basic', qText:item.q, correctKey:extractKeyPoint(item.a),
     fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
   });
 
-  // 類型 2：反向題（不能/不行/無法）
-  if(/不能|不行|無法|不含|不提供|❌/.test(cleanA)){
+  // 類型 2：反向題 — 只有確實列出「不能做」清單的 QA 才出
+  const negItems = extractNegativeItems(item.a);
+  if(negItems.length>=1){
     variants.push({
-      type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？',
-      correctKey:extractNegativePoint(cleanA),
+      type:'negative',
+      qText:'以下哪一項是家天使「不提供」或「不能做」的？',
+      correctKey: negItems[Math.floor(Math.random()*negItems.length)],
+      negativePool: negItems, // 備用
       fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
     });
   }
@@ -1418,61 +1499,83 @@ function generateQuestionVariants(item, catIcon, catName){
   return variants;
 }
 
-function extractNegativePoint(text){
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
-  for(const line of lines){
-    if(/❌|不能|不行|無法|不含|不提供/.test(line)){
-      const clean = line.replace(/^❌\s*/,'').trim();
-      if(clean.length>=4 && clean.length<=60) return clean;
-    }
-  }
-  return extractKeyPoint(text);
-}
-
-function findNumberSentence(text, numStr){
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
-  for(const line of lines){
-    if(line.includes(numStr)){
-      const clean = line.replace(/^[•\-\d①-⑧📌💰🚗📅⏰💳🔴🟠🟡🟢⚪]+\s*/,'').trim();
-      if(clean.length<=80) return clean;
-      return clean.substring(0,77)+'…';
-    }
-  }
-  return numStr;
-}
-
-// 產生有迷惑力的錯誤選項
+// 產生干擾選項
 function generateDistractors(correctItem, allItems, questionType){
   const distractors = [];
   const correctKey = correctItem.correctKey;
   const correctId = correctItem.sourceId;
-  // 同分類優先（最具干擾性）
+  const usedTexts = new Set();
+  usedTexts.add(correctKey.substring(0,15));
+  // 如果是反向題，也排除同一題的其他否定項目
+  if(correctItem.negativePool){
+    correctItem.negativePool.forEach(np=>usedTexts.add(np.substring(0,15)));
+  }
+
+  // 同分類優先
   const sameCat = allItems.filter(x=>x.catId===correctItem.sourceCatId && x.id!==correctId);
   const diffCat = allItems.filter(x=>x.catId!==correctItem.sourceCatId && x.id!==correctId);
   shuffleArr(sameCat); shuffleArr(diffCat);
   const candidates = [...sameCat, ...diffCat];
-  const usedTexts = new Set();
-  usedTexts.add(correctKey.substring(0,20));
 
-  for(const cand of candidates){
-    if(distractors.length>=3) break;
-    let dText = '';
-    if(questionType==='negative'){
-      dText = extractPositivePoint(cand.a);
-    } else if(questionType==='number'){
-      const otherNum = cand.a.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
-      if(otherNum) dText = findNumberSentence(
-        cand.a.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,''), otherNum[1]);
-      else dText = extractKeyPoint(cand.a);
-    } else {
-      dText = extractKeyPoint(cand.a);
+  if(questionType==='negative'){
+    // 反向題的干擾 = 家天使「可以做的事」
+    // 先收集所有正面項目
+    const positivePool = [];
+    for(const cand of candidates){
+      const pItems = extractPositiveItems(cand.a);
+      pItems.forEach(p=>{
+        if(p.length>=4 && !usedTexts.has(p.substring(0,15))){
+          positivePool.push(p);
+          usedTexts.add(p.substring(0,15));
+        }
+      });
     }
-    if(!dText || dText.length<4) continue;
-    const sig = dText.substring(0,20);
-    if(usedTexts.has(sig)) continue;
-    usedTexts.add(sig);
-    distractors.push(dText);
+    shuffleArr(positivePool);
+    distractors.push(...positivePool.slice(0,3));
+
+    // 不夠就用預設的「可以做」
+    const posFallbacks = [
+      '洗澡沐浴、擦澡、床上洗頭',
+      '陪同就醫、代取處方藥',
+      '餐食照顧、備餐、加熱、餵食',
+      '翻身拍背、移位協助',
+      '陪同外出活動、心靈陪伴',
+      '代購物品、代辦事項'
+    ];
+    shuffleArr(posFallbacks);
+    while(distractors.length<3){
+      const fb = posFallbacks.pop();
+      if(fb && !usedTexts.has(fb.substring(0,15))){
+        distractors.push(fb); usedTexts.add(fb.substring(0,15));
+      } else break;
+    }
   }
+  else if(questionType==='number'){
+    // 數字題的干擾 = 其他 QA 的數字描述
+    for(const cand of candidates){
+      if(distractors.length>=3) break;
+      const ca = cleanOptionText(cand.a);
+      const otherNum = ca.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
+      if(otherNum){
+        const dText = findNumberSentence(ca, otherNum[1]);
+        if(dText && dText.length>=4 && !usedTexts.has(dText.substring(0,15))){
+          distractors.push(dText); usedTexts.add(dText.substring(0,15));
+        }
+      }
+    }
+  }
+  else{
+    // 基本題的干擾 = 其他 QA 的重點
+    for(const cand of candidates){
+      if(distractors.length>=3) break;
+      const dText = extractKeyPoint(cand.a);
+      if(dText && dText.length>=4 && !usedTexts.has(dText.substring(0,15))){
+        distractors.push(dText); usedTexts.add(dText.substring(0,15));
+      }
+    }
+  }
+
+  // 通用備用選項
   const fallbacks = [
     '需致電客服由人工安排，無法線上操作',
     '費用依各縣市政府公告標準收取',
@@ -1484,23 +1587,11 @@ function generateDistractors(correctItem, allItems, questionType){
   shuffleArr(fallbacks);
   while(distractors.length<3){
     const fb = fallbacks.pop()||'以上皆非';
-    if(!usedTexts.has(fb.substring(0,20))){
-      distractors.push(fb); usedTexts.add(fb.substring(0,20));
+    if(!usedTexts.has(fb.substring(0,15))){
+      distractors.push(fb); usedTexts.add(fb.substring(0,15));
     }
   }
   return distractors.slice(0,3);
-}
-
-function extractPositivePoint(text){
-  const clean = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
-  const lines = clean.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
-  for(const line of lines){
-    if(!/❌|不能|不行|無法|不含|不提供/.test(line)){
-      const c = line.replace(/^[①-⑧•\-\d📌💰🚗📅⏰💳]+\s*/,'').trim();
-      if(c.length>=6 && c.length<=70) return c;
-    }
-  }
-  return extractKeyPoint(text);
 }
 
 function beginQuiz(){
