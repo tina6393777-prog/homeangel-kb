@@ -1336,7 +1336,7 @@ function doLogout(){
 // ── QUIZ SYSTEM ──
 let quizQuestions = [];
 let quizCurrent = 0;
-let quizAnswers = []; // user's selected answer index per question
+let quizAnswers = [];
 let quizCount = 15;
 let quizTimerInterval = null;
 let quizStartTime = 0;
@@ -1348,7 +1348,6 @@ function selectQuizCount(btn, n){
 }
 
 function startQuizSetup(){
-  // show quiz section
   document.getElementById('sec-overview').classList.add('hidden');
   document.getElementById('sec-search').classList.add('hidden');
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
@@ -1360,101 +1359,235 @@ function startQuizSetup(){
   document.getElementById('topbarTitle').textContent='📝 隨堂測驗';
   curSec='quiz';
   document.getElementById('contentArea').scrollTop=0;
-  // stop timer if running
   if(quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
 }
 
+// ── 智慧出題引擎 ──
+
+// 從答案中提取「核心重點摘要」當選項文字
+function extractKeyPoint(text){
+  if(!text)return '';
+  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  // 優先抓 highlight 包裹的原始重點句
+  const hlMatch = text.match(/\{hl-[yobgp]\}([^{]+)\{\/hl\}/);
+  const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
+  if(hlMatch && hlMatch[1].trim().length>=4){
+    let key = hlMatch[1].trim();
+    const fullLine = lines.find(l=>l.includes(key));
+    if(fullLine && fullLine.length<=80) return fullLine;
+    if(key.length>60) key=key.substring(0,57)+'…';
+    return key;
+  }
+  for(const line of lines){
+    const clean = line.replace(/^[①-⑧❌⚠️📌💰🚗📅⏰💳🔴🟠🟡🟢⚪•\-\d\.]+\s*/,'').trim();
+    if(clean.length>=6 && clean.length<=80 && !/^[（\(]/.test(clean)) return clean;
+  }
+  const fallback = lines.join(' ').substring(0,70);
+  return fallback+(fallback.length>=70?'…':'');
+}
+
+// 產生多種出題角度
+function generateQuestionVariants(item, catIcon, catName){
+  const variants = [];
+  const cleanA = item.a.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+
+  // 類型 1：原始 Q → 選正確重點
+  variants.push({
+    type:'basic', qText:item.q, correctKey:extractKeyPoint(item.a),
+    fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
+  });
+
+  // 類型 2：反向題（不能/不行/無法）
+  if(/不能|不行|無法|不含|不提供|❌/.test(cleanA)){
+    variants.push({
+      type:'negative', qText:'以下哪一項是家天使「不提供」或「不能做」的？',
+      correctKey:extractNegativePoint(cleanA),
+      fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
+    });
+  }
+
+  // 類型 3：數字題
+  const numMatch = cleanA.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
+  if(numMatch){
+    variants.push({
+      type:'number', qText:'關於「'+item.q+'」，以下哪個數字敘述是正確的？',
+      correctKey:findNumberSentence(cleanA, numMatch[1]),
+      fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
+    });
+  }
+  return variants;
+}
+
+function extractNegativePoint(text){
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
+  for(const line of lines){
+    if(/❌|不能|不行|無法|不含|不提供/.test(line)){
+      const clean = line.replace(/^❌\s*/,'').trim();
+      if(clean.length>=4 && clean.length<=60) return clean;
+    }
+  }
+  return extractKeyPoint(text);
+}
+
+function findNumberSentence(text, numStr){
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
+  for(const line of lines){
+    if(line.includes(numStr)){
+      const clean = line.replace(/^[•\-\d①-⑧📌💰🚗📅⏰💳🔴🟠🟡🟢⚪]+\s*/,'').trim();
+      if(clean.length<=80) return clean;
+      return clean.substring(0,77)+'…';
+    }
+  }
+  return numStr;
+}
+
+// 產生有迷惑力的錯誤選項
+function generateDistractors(correctItem, allItems, questionType){
+  const distractors = [];
+  const correctKey = correctItem.correctKey;
+  const correctId = correctItem.sourceId;
+  // 同分類優先（最具干擾性）
+  const sameCat = allItems.filter(x=>x.catId===correctItem.sourceCatId && x.id!==correctId);
+  const diffCat = allItems.filter(x=>x.catId!==correctItem.sourceCatId && x.id!==correctId);
+  shuffleArr(sameCat); shuffleArr(diffCat);
+  const candidates = [...sameCat, ...diffCat];
+  const usedTexts = new Set();
+  usedTexts.add(correctKey.substring(0,20));
+
+  for(const cand of candidates){
+    if(distractors.length>=3) break;
+    let dText = '';
+    if(questionType==='negative'){
+      dText = extractPositivePoint(cand.a);
+    } else if(questionType==='number'){
+      const otherNum = cand.a.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
+      if(otherNum) dText = findNumberSentence(
+        cand.a.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,''), otherNum[1]);
+      else dText = extractKeyPoint(cand.a);
+    } else {
+      dText = extractKeyPoint(cand.a);
+    }
+    if(!dText || dText.length<4) continue;
+    const sig = dText.substring(0,20);
+    if(usedTexts.has(sig)) continue;
+    usedTexts.add(sig);
+    distractors.push(dText);
+  }
+  const fallbacks = [
+    '需致電客服由人工安排，無法線上操作',
+    '費用依各縣市政府公告標準收取',
+    '需由家屬親自到場簽署同意書',
+    '服務完成後 7 天內以現金支付',
+    '僅限週一至週五上班時段提供服務',
+    '需提前一週預約才能安排服務人員'
+  ];
+  shuffleArr(fallbacks);
+  while(distractors.length<3){
+    const fb = fallbacks.pop()||'以上皆非';
+    if(!usedTexts.has(fb.substring(0,20))){
+      distractors.push(fb); usedTexts.add(fb.substring(0,20));
+    }
+  }
+  return distractors.slice(0,3);
+}
+
+function extractPositivePoint(text){
+  const clean = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  const lines = clean.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
+  for(const line of lines){
+    if(!/❌|不能|不行|無法|不含|不提供/.test(line)){
+      const c = line.replace(/^[①-⑧•\-\d📌💰🚗📅⏰💳]+\s*/,'').trim();
+      if(c.length>=6 && c.length<=70) return c;
+    }
+  }
+  return extractKeyPoint(text);
+}
+
 function beginQuiz(){
-  // collect all QA items
   let allItems = [];
   db.cats.forEach(cat=>{
     (db.items[cat.id]||[]).forEach(item=>{
-      // only include items that have both Q and A
       if(item.q && item.a && item.a.trim().length > 10){
         allItems.push({...item, catId:cat.id, catIcon:cat.icon, catName:cat.name});
       }
     });
   });
+  if(allItems.length < 4){ alert('題庫不足 4 題，無法產生測驗。'); return; }
 
-  if(allItems.length < 4){
-    alert('題庫不足 4 題，無法產生測驗。請先新增更多 QA 條目。');
-    return;
+  // 產生所有題目變體
+  let allVariants = [];
+  allItems.forEach(item=>{
+    const variants = generateQuestionVariants(item, item.catIcon, item.catName);
+    variants.forEach(v=>{ v.sourceCatId = item.catId; });
+    allVariants.push(...variants);
+  });
+  shuffleArr(allVariants);
+
+  // 去重：同一則 QA 最多出一題，優先非 basic 題型
+  const usedSources = new Set();
+  const picked = [];
+  for(const v of allVariants){
+    if(picked.length>=quizCount) break;
+    if(usedSources.has(v.sourceId)) continue;
+    if(v.type!=='basic'){ usedSources.add(v.sourceId); picked.push(v); }
   }
+  for(const v of allVariants){
+    if(picked.length>=quizCount) break;
+    if(usedSources.has(v.sourceId)) continue;
+    usedSources.add(v.sourceId); picked.push(v);
+  }
+  shuffleArr(picked);
 
-  // shuffle and pick
-  shuffleArr(allItems);
-  const picked = allItems.slice(0, Math.min(quizCount, allItems.length));
-
-  // generate quiz questions with options
-  quizQuestions = picked.map(item=>{
-    // correct answer: strip syntax for display
-    const correctA = stripSyntax(item.a);
-    // pick 3 wrong answers from other items
-    const others = allItems.filter(x=>x.id!==item.id);
-    shuffleArr(others);
-    const wrongAs = others.slice(0,3).map(x=>stripSyntax(x.a));
-    // build options
-    const options = [{text: correctA, correct: true}, ...wrongAs.map(w=>({text:w, correct:false}))];
+  // 產生每題選項
+  quizQuestions = picked.map(variant=>{
+    const correctText = variant.correctKey;
+    const distractors = generateDistractors(variant, allItems, variant.type);
+    const options = [{text:correctText,correct:true}, ...distractors.map(d=>({text:d,correct:false}))];
     shuffleArr(options);
     return {
-      q: item.q,
-      fullA: item.a,
-      catIcon: item.catIcon,
-      catName: item.catName,
-      options: options,
-      correctIdx: options.findIndex(o=>o.correct)
+      q:variant.qText, type:variant.type, fullA:variant.fullA,
+      catIcon:variant.catIcon, catName:variant.catName,
+      options, correctIdx:options.findIndex(o=>o.correct)
     };
   });
 
   quizCurrent = 0;
   quizAnswers = new Array(quizQuestions.length).fill(-1);
-
-  // show active quiz
   document.getElementById('quizSetup').classList.add('hidden');
   document.getElementById('quizActive').classList.remove('hidden');
   document.getElementById('quizResult').classList.add('hidden');
-
-  // start timer
   quizStartTime = Date.now();
   if(quizTimerInterval)clearInterval(quizTimerInterval);
   quizTimerInterval = setInterval(updateQuizTimer, 1000);
   updateQuizTimer();
-
   renderQuizQuestion();
 }
 
 function stripSyntax(text){
   if(!text)return '';
-  // remove highlight syntax and bold
-  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'');
-  t = t.replace(/\*\*/g,'');
-  // truncate to ~120 chars for option display
+  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
   if(t.length > 120) t = t.substring(0,117) + '…';
   return t.trim();
 }
-
 function shuffleArr(arr){
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
 }
-
 function updateQuizTimer(){
   const elapsed = Math.floor((Date.now()-quizStartTime)/1000);
-  const m = Math.floor(elapsed/60);
-  const s = elapsed%60;
-  document.getElementById('quizTimer').textContent = `⏱ ${m}:${s.toString().padStart(2,'0')}`;
+  const m = Math.floor(elapsed/60); const s = elapsed%60;
+  document.getElementById('quizTimer').textContent = '⏱ '+m+':'+s.toString().padStart(2,'0');
 }
 
 function renderQuizQuestion(){
   const q = quizQuestions[quizCurrent];
   const total = quizQuestions.length;
-  // progress
   document.getElementById('quizProgressFill').style.width = ((quizCurrent+1)/total*100)+'%';
-  document.getElementById('quizQNum').textContent = `第 ${quizCurrent+1} 題`;
-  document.getElementById('quizQTotal').textContent = `/ ${total}`;
-  document.getElementById('quizCatBadge').textContent = q.catIcon + ' ' + q.catName;
+  document.getElementById('quizQNum').textContent = '第 '+(quizCurrent+1)+' 題';
+  document.getElementById('quizQTotal').textContent = '/ '+total;
+  document.getElementById('quizCatBadge').textContent = q.catIcon+' '+q.catName+
+    (q.type==='negative'?' · ⛔ 反向題':q.type==='number'?' · 🔢 數字題':'');
   document.getElementById('quizQText').textContent = q.q;
 
-  // options
   const letters = ['A','B','C','D'];
   const optsEl = document.getElementById('quizOptions');
   optsEl.innerHTML = '';
@@ -1462,11 +1595,9 @@ function renderQuizQuestion(){
     const d = document.createElement('div');
     d.className = 'quiz-opt' + (quizAnswers[quizCurrent]===i?' selected':'');
     d.onclick = ()=>selectQuizAnswer(i);
-    d.innerHTML = `<div class="quiz-opt-letter">${letters[i]}</div><div class="quiz-opt-text">${esc(opt.text)}</div>`;
+    d.innerHTML = '<div class="quiz-opt-letter">'+letters[i]+'</div><div class="quiz-opt-text">'+esc(opt.text)+'</div>';
     optsEl.appendChild(d);
   });
-
-  // nav buttons
   document.getElementById('quizPrevBtn').disabled = quizCurrent===0;
   if(quizCurrent===total-1){
     document.getElementById('quizNextBtn').classList.add('hidden');
@@ -1480,17 +1611,11 @@ function renderQuizQuestion(){
 
 function selectQuizAnswer(idx){
   quizAnswers[quizCurrent] = idx;
-  document.querySelectorAll('.quiz-opt').forEach((el,i)=>{
-    el.classList.toggle('selected', i===idx);
-  });
+  document.querySelectorAll('.quiz-opt').forEach((el,i)=>el.classList.toggle('selected', i===idx));
 }
-
-function quizPrev(){
-  if(quizCurrent>0){quizCurrent--;renderQuizQuestion();}
-}
+function quizPrev(){ if(quizCurrent>0){quizCurrent--;renderQuizQuestion();} }
 function quizNext(){
   if(quizAnswers[quizCurrent]===-1){
-    // shake effect
     document.querySelector('.quiz-question-card').style.animation='shake .3s';
     setTimeout(()=>document.querySelector('.quiz-question-card').style.animation='',300);
     return;
@@ -1499,72 +1624,96 @@ function quizNext(){
 }
 
 function submitQuiz(){
-  // check unanswered
   const unanswered = quizAnswers.filter(a=>a===-1).length;
-  if(unanswered>0){
-    if(!confirm(`還有 ${unanswered} 題未作答，確定交卷嗎？`))return;
-  }
-
-  // stop timer
+  if(unanswered>0){ if(!confirm('還有 '+unanswered+' 題未作答，確定交卷嗎？'))return; }
   clearInterval(quizTimerInterval);quizTimerInterval=null;
   const elapsed = Math.floor((Date.now()-quizStartTime)/1000);
-  const m = Math.floor(elapsed/60);
-  const s = elapsed%60;
+  const m = Math.floor(elapsed/60); const s = elapsed%60;
 
-  // calculate score
   let correct = 0;
-  quizQuestions.forEach((q,i)=>{
-    if(quizAnswers[i]===q.correctIdx) correct++;
-  });
+  quizQuestions.forEach((q,i)=>{ if(quizAnswers[i]===q.correctIdx) correct++; });
   const score = Math.round(correct/quizQuestions.length*100);
 
-  // emoji & color
-  let emoji='🎉', bgGrad='linear-gradient(135deg,#064e3b 0%,#1a2038 100%)';
+  let emoji='🎉', bgGrad='linear-gradient(135deg,#064e3b 0%,#1a2038 100%)',
+      comment='太厲害了！對家天使業務瞭若指掌 👏';
   if(score>=90){emoji='🏆';}
-  else if(score>=70){emoji='😊';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#1e3a5f 100%)';}
-  else if(score>=50){emoji='🤔';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#3d2b1f 100%)';}
-  else{emoji='😰';bgGrad='linear-gradient(135deg,#2d1b1b 0%,#1a1d2e 100%)';}
+  else if(score>=70){emoji='😊';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#1e3a5f 100%)';comment='不錯喔！大部分都答對了，再加油一下～';}
+  else if(score>=50){emoji='🤔';bgGrad='linear-gradient(135deg,#1a1d2e 0%,#3d2b1f 100%)';comment='有些觀念需要加強，建議複習一下錯題的分類 📖';}
+  else{emoji='😰';bgGrad='linear-gradient(135deg,#2d1b1b 0%,#1a1d2e 100%)';comment='別灰心！先把下方錯題解析看完，再測一次試試 💪';}
 
-  // show result
   document.getElementById('quizActive').classList.add('hidden');
   document.getElementById('quizResult').classList.remove('hidden');
   document.getElementById('quizResultBanner').style.background=bgGrad;
   document.getElementById('quizResultEmoji').textContent=emoji;
   document.getElementById('quizScore').textContent=score;
-  document.getElementById('quizResultDetail').textContent=`答對 ${correct} / ${quizQuestions.length} 題`;
-  document.getElementById('quizResultTime').textContent=`⏱ 用時 ${m} 分 ${s.toString().padStart(2,'0')} 秒`;
+  document.getElementById('quizResultTime').textContent='⏱ 用時 '+m+' 分 '+s.toString().padStart(2,'0')+' 秒';
 
-  // render review
+  // 弱項分類統計
+  const catWrong = {};
+  quizQuestions.forEach((q,i)=>{
+    if(quizAnswers[i]!==q.correctIdx){
+      const key = q.catIcon+' '+q.catName;
+      catWrong[key] = (catWrong[key]||0)+1;
+    }
+  });
+  let weakHTML = '';
+  const weakCats = Object.entries(catWrong).sort((a,b)=>b[1]-a[1]);
+  if(weakCats.length>0){
+    weakHTML = '<div style="margin-top:10px;font-size:13px;color:#a8b4cc;">⚡ 建議加強：'+
+      weakCats.map(function(e){return '<span style="background:rgba(255,255,255,.1);padding:2px 8px;border-radius:10px;margin:0 3px;">'+e[0]+' ('+e[1]+'題)</span>';}).join('')+'</div>';
+  }
+  document.getElementById('quizResultDetail').innerHTML =
+    '答對 '+correct+' / '+quizQuestions.length+' 題<div style="font-size:13px;color:#c9d1e0;margin-top:6px;">'+comment+'</div>'+weakHTML;
+
+  // 解析列表：錯題優先
   const reviewList = document.getElementById('quizReviewList');
   reviewList.innerHTML = '';
   const letters = ['A','B','C','D'];
+  const wrongIdxs = [], rightIdxs = [];
   quizQuestions.forEach((q,i)=>{
+    if(quizAnswers[i]===q.correctIdx) rightIdxs.push(i); else wrongIdxs.push(i);
+  });
+
+  if(wrongIdxs.length>0){
+    const wrongHdr = document.createElement('div');
+    wrongHdr.style.cssText='font-size:14px;font-weight:700;color:#dc2626;margin-bottom:10px;display:flex;align-items:center;gap:6px;';
+    wrongHdr.innerHTML='❌ 答錯的題目（'+wrongIdxs.length+' 題）— 請重點複習';
+    reviewList.appendChild(wrongHdr);
+  }
+
+  function renderReviewCard(i, showFull){
+    const q = quizQuestions[i];
     const isCorrect = quizAnswers[i]===q.correctIdx;
     const card = document.createElement('div');
-    card.className = 'quiz-review-card ' + (isCorrect?'right-card':'wrong-card');
-    
-    let optsHTML = q.options.map((opt,oi)=>{
-      let cls = 'quiz-opt';
-      if(oi===q.correctIdx && oi===quizAnswers[i]) cls+=' correct'; // answered correct
-      else if(oi===q.correctIdx) cls+=' correct-missed'; // correct but not chosen
-      else if(oi===quizAnswers[i]) cls+=' wrong'; // wrong choice
-      return `<div class="${cls}" style="cursor:default;padding:10px 12px;margin-bottom:4px;">
-        <div class="quiz-opt-letter">${letters[oi]}</div>
-        <div class="quiz-opt-text" style="font-size:13px;">${esc(opt.text)}</div>
-      </div>`;
+    card.className = 'quiz-review-card '+(isCorrect?'right-card':'wrong-card');
+    const typeLabel = q.type==='negative'?'⛔ 反向題':q.type==='number'?'🔢 數字題':'📋 基本題';
+    let optsHTML = q.options.map(function(opt,oi){
+      let cls = 'quiz-opt', marker = '';
+      if(oi===q.correctIdx && oi===quizAnswers[i]){cls+=' correct';marker='✓ 你的答案（正確）';}
+      else if(oi===q.correctIdx){cls+=' correct-missed';marker='✓ 正確答案';}
+      else if(oi===quizAnswers[i]){cls+=' wrong';marker='✗ 你的答案';}
+      return '<div class="'+cls+'" style="cursor:default;padding:10px 12px;margin-bottom:4px;">'+
+        '<div class="quiz-opt-letter">'+letters[oi]+'</div>'+
+        '<div class="quiz-opt-text" style="font-size:13px;">'+esc(opt.text)+(marker?'<span style="font-size:11px;margin-left:8px;opacity:.7;">'+marker+'</span>':'')+'</div></div>';
     }).join('');
-
-    card.innerHTML = `
-      <div class="quiz-review-q">
-        <span>${i+1}. ${esc(q.q)}</span>
-        <span class="quiz-review-badge ${isCorrect?'correct-badge':'wrong-badge'}">${isCorrect?'✓ 正確':'✗ 答錯'}</span>
-      </div>
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">${q.catIcon} ${q.catName}</div>
-      ${optsHTML}
-      ${!isCorrect?`<div class="quiz-review-answer"><strong>📖 完整答案：</strong>\n${renderA(q.fullA)}</div>`:''}
-    `;
+    card.innerHTML =
+      '<div class="quiz-review-q"><span>'+(i+1)+'. '+esc(q.q)+'</span>'+
+      '<span class="quiz-review-badge '+(isCorrect?'correct-badge':'wrong-badge')+'">'+(isCorrect?'✓ 正確':'✗ 答錯')+'</span></div>'+
+      '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">'+q.catIcon+' '+q.catName+' · '+typeLabel+'</div>'+
+      optsHTML+
+      (showFull?'<div class="quiz-review-answer"><strong>📖 完整答案（SOP 原文）：</strong>\n'+renderA(q.fullA)+'</div>':'');
     reviewList.appendChild(card);
-  });
+  }
+
+  wrongIdxs.forEach(function(i){renderReviewCard(i, true);});
+
+  if(rightIdxs.length>0){
+    const rightHdr = document.createElement('div');
+    rightHdr.style.cssText='font-size:14px;font-weight:700;color:#16a34a;margin:20px 0 10px;display:flex;align-items:center;gap:6px;';
+    rightHdr.innerHTML='✅ 答對的題目（'+rightIdxs.length+' 題）';
+    reviewList.appendChild(rightHdr);
+  }
+  rightIdxs.forEach(function(i){renderReviewCard(i, false);});
 
   document.getElementById('contentArea').scrollTop=0;
 }
