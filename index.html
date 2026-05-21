@@ -1364,234 +1364,216 @@ function startQuizSetup(){
 
 // ── 智慧出題引擎 ──
 
-// 清理選項文字：移除語法標記與前綴雜訊
-function cleanOptionText(text){
+// 清理選項文字：移除語法標記與所有前綴雜訊
+function cleanOpt(text){
   if(!text)return '';
-  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
-  // 清掉常見前綴符號
-  t = t.replace(/^[※．.\s·•\-–—]+/,'').trim();
-  t = t.replace(/^[\d]+[\.、）\)]\s*/,'').trim();
+  let t = text;
+  // 移除 highlight 語法與粗體
+  t = t.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  // 移除各種前綴垃圾符號
+  t = t.replace(/^[※．.\s·、•\-–—:：\d①-⑧]+/g,'').trim();
+  // 移除開頭的 emoji（但保留中間的）
+  t = t.replace(/^[\u2600-\u27BF\uD83C-\uDBFF\uDC00-\uDFFF\uFE0F]+\s*/,'').trim();
+  // 如果結尾是冒號，移除（這是標題不是內容）
+  t = t.replace(/[：:]$/,'').trim();
   return t;
 }
 
-// 從答案中提取「第一句核心結論」當正確選項
-function extractKeyPoint(text){
-  if(!text)return '';
-  let raw = text;
-  let t = cleanOptionText(text);
-  const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
-
-  // 策略 1：優先抓被 highlight 包住的重點
-  const hlMatches = raw.match(/\{hl-[yobgp]\}([^{]+)\{\/hl\}/g);
-  if(hlMatches){
-    for(const m of hlMatches){
-      const inner = m.replace(/\{hl-[yobgp]\}/,'').replace(/\{\/hl\}/,'').replace(/\*\*/g,'').trim();
-      if(inner.length>=4 && inner.length<=70 && !/^以下|^：/.test(inner)){
-        return cleanOptionText(inner);
-      }
-    }
-  }
-
-  // 策略 2：找第一行有實質內容的句子（跳過標題行、純 emoji 行）
-  for(const line of lines){
-    let clean = cleanOptionText(line);
-    // 跳過純標題行或列表標頭
-    if(/^[①-⑧]/.test(clean)) continue;
-    if(clean.endsWith('：') || clean.endsWith(':')) continue;
-    if(clean.length>=8 && clean.length<=75){
-      return clean;
-    }
-  }
-
-  // 策略 3：第一句截斷
-  const first = lines[0] || '';
-  const clean = cleanOptionText(first);
-  if(clean.length>75) return clean.substring(0,72)+'…';
-  return clean;
+// 判斷一行文字是否是「有用的選項」（不是標題、不是空話）
+function isGoodOption(text){
+  if(!text || text.length<6) return false;
+  if(text.length>75) return false;
+  if(text.endsWith('：') || text.endsWith(':')) return false;
+  if(/^以下|^如下|^注意|^備註|^說明/.test(text)) return false;
+  // 太短且沒有動詞的不要
+  return true;
 }
 
-// 從答案中抓「不能做的具體事項」
-function extractNegativeItems(text){
+// 從答案中提取核心重點當選項
+function extractKeyPoint(rawText){
+  if(!rawText) return '';
+
+  // 1. 優先抓 highlight 標記的重點
+  const hlMatches = [];
+  const hlRe = /\{hl-[yobgp]\}([^{]+)\{\/hl\}/g;
+  let m;
+  while((m = hlRe.exec(rawText)) !== null){
+    const inner = cleanOpt(m[1]);
+    if(isGoodOption(inner)) hlMatches.push(inner);
+  }
+  if(hlMatches.length > 0) return hlMatches[0];
+
+  // 2. 拆行找第一句有意義的
+  const cleaned = cleanOpt(rawText);
+  const lines = cleaned.split('\n').map(l=>cleanOpt(l)).filter(l=>l.length>0);
+  for(const line of lines){
+    if(isGoodOption(line)) return line;
+  }
+
+  // 3. 實在找不到就截前面
+  const fb = (lines[0]||'').substring(0, 72);
+  return fb + (fb.length >= 72 ? '…' : '');
+}
+
+// ── 反向題專用 ──
+
+// 從答案中抓「❌ 開頭的禁止項目」（嚴格模式）
+function extractBanList(rawText){
   const items = [];
-  const t = cleanOptionText(text);
+  const t = rawText.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  const lines = t.split('\n').map(l=>l.trim());
+  for(const line of lines){
+    // 只抓 ❌ 開頭的明確清單項
+    if(!/^❌/.test(line)) continue;
+    let clean = line.replace(/^❌\s*/,'').trim();
+    // 如果有括號補充，取括號前的主文
+    const parenIdx = clean.indexOf('（');
+    if(parenIdx > 4) clean = clean.substring(0, parenIdx).trim();
+    clean = cleanOpt(clean);
+    if(clean.length >= 3 && clean.length <= 45){
+      items.push(clean);
+    }
+  }
+  return items;
+}
+
+// 家天使「可以做的」服務項目（寫死，因為這些是確定的 SOP）
+const POSITIVE_SERVICES = [
+  '洗澡沐浴、擦澡、床上洗頭',
+  '陪同就醫、協助掛號、陪診聽取醫囑',
+  '餐食照顧、備餐、加熱、餵食',
+  '清潔管路（鼻胃管/導尿管）、倒尿袋',
+  '翻身拍背、移位協助、肢體關節活動',
+  '代購物品、代辦事項（郵寄、代領）',
+  '陪同外出活動、心靈陪伴、書報代讀',
+  '修剪指甲、大小便清潔（含尿布更換）',
+  '污物清潔（洗衣機洗）',
+  '照顧技巧指導（外籍看護/家屬）'
+];
+
+// ── 數字題專用 ──
+function findNumberLine(rawText, numStr){
+  const t = rawText.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
   const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
   for(const line of lines){
-    if(/^❌/.test(line)){
-      let clean = line.replace(/^❌\s*/,'').trim();
-      clean = cleanOptionText(clean);
-      if(clean.length>=3 && clean.length<=50) items.push(clean);
-    }
-    else if(/不能|不行|無法|不含|不提供/.test(line)){
-      let clean = cleanOptionText(line);
-      if(clean.length>=5 && clean.length<=50 && !clean.endsWith('：')) items.push(clean);
-    }
-  }
-  return items;
-}
-
-// 從答案中抓「可以做的具體事項」（給反向題當干擾用）
-function extractPositiveItems(text){
-  const items = [];
-  const t = cleanOptionText(text);
-  const lines = t.split('\n').map(l=>l.trim()).filter(l=>l.length>5);
-  for(const line of lines){
-    // 跳過否定句
-    if(/❌|不能|不行|無法|不含|不提供/.test(line)) continue;
-    // 找有實質動作描述的句子
-    let clean = cleanOptionText(line);
-    if(clean.endsWith('：') || clean.endsWith(':')) continue;
-    if(/^[①-⑧]/.test(clean)){
-      clean = clean.replace(/^[①-⑧]\s*/,'').trim();
-      // 只取 – 前面的標題部分
-      const dashIdx = clean.indexOf(' – ');
-      if(dashIdx>0) clean = clean.substring(0, dashIdx).trim();
-    }
-    if(clean.length>=4 && clean.length<=50) items.push(clean);
-  }
-  return items;
-}
-
-// 從答案中找包含特定數字的句子
-function findNumberSentence(text, numStr){
-  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>3);
-  for(const line of lines){
     if(line.includes(numStr)){
-      let clean = cleanOptionText(line);
-      if(clean.length<=75) return clean;
-      return clean.substring(0,72)+'…';
+      let clean = cleanOpt(line);
+      if(isGoodOption(clean)) return clean;
+      if(clean.length > 75) return clean.substring(0,72) + '…';
+      return clean;
     }
   }
   return numStr;
 }
 
-// 產生多種出題角度
+// ── 出題 ──
 function generateQuestionVariants(item, catIcon, catName){
   const variants = [];
-  const cleanA = cleanOptionText(item.a);
+  const cleanA = cleanOpt(item.a);
 
-  // 類型 1：基本題 — 原始 Q，選正確重點
-  variants.push({
-    type:'basic', qText:item.q, correctKey:extractKeyPoint(item.a),
-    fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
-  });
-
-  // 類型 2：反向題 — 只有確實列出「不能做」清單的 QA 才出
-  const negItems = extractNegativeItems(item.a);
-  if(negItems.length>=1){
+  // 基本題：永遠都出
+  const kp = extractKeyPoint(item.a);
+  if(kp && kp.length >= 6){
     variants.push({
-      type:'negative',
-      qText:'以下哪一項是家天使「不提供」或「不能做」的？',
-      correctKey: negItems[Math.floor(Math.random()*negItems.length)],
-      negativePool: negItems, // 備用
+      type:'basic', qText:item.q, correctKey:kp,
       fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
     });
   }
 
-  // 類型 3：數字題
-  const numMatch = cleanA.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
-  if(numMatch){
+  // 反向題：嚴格限定，必須有 ≥3 個 ❌ 清單項才出（確保品質）
+  const banList = extractBanList(item.a);
+  if(banList.length >= 3){
     variants.push({
-      type:'number', qText:'關於「'+item.q+'」，以下哪個數字敘述是正確的？',
-      correctKey:findNumberSentence(cleanA, numMatch[1]),
+      type:'negative',
+      qText:'以下哪一項是家天使「不提供」或「不能做」的？',
+      correctKey: banList[Math.floor(Math.random() * banList.length)],
+      banPool: banList,
       fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
     });
+  }
+
+  // 數字題
+  const numMatch = cleanA.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
+  if(numMatch){
+    const ns = findNumberLine(cleanA, numMatch[1]);
+    if(ns && ns.length >= 6){
+      variants.push({
+        type:'number', qText:'關於「'+item.q+'」，以下哪個數字敘述是正確的？',
+        correctKey: ns,
+        fullA:item.a, catIcon, catName, sourceId:item.id, sourceCatId:item.catId||''
+      });
+    }
   }
   return variants;
 }
 
-// 產生干擾選項
+// ── 干擾選項 ──
 function generateDistractors(correctItem, allItems, questionType){
   const distractors = [];
-  const correctKey = correctItem.correctKey;
-  const correctId = correctItem.sourceId;
   const usedTexts = new Set();
-  usedTexts.add(correctKey.substring(0,15));
-  // 如果是反向題，也排除同一題的其他否定項目
-  if(correctItem.negativePool){
-    correctItem.negativePool.forEach(np=>usedTexts.add(np.substring(0,15)));
+  usedTexts.add(correctItem.correctKey.substring(0,12));
+
+  // 反向題：排除同題的所有禁止項
+  if(correctItem.banPool){
+    correctItem.banPool.forEach(b => usedTexts.add(b.substring(0,12)));
   }
 
-  // 同分類優先
-  const sameCat = allItems.filter(x=>x.catId===correctItem.sourceCatId && x.id!==correctId);
-  const diffCat = allItems.filter(x=>x.catId!==correctItem.sourceCatId && x.id!==correctId);
-  shuffleArr(sameCat); shuffleArr(diffCat);
-  const candidates = [...sameCat, ...diffCat];
-
-  if(questionType==='negative'){
-    // 反向題的干擾 = 家天使「可以做的事」
-    // 先收集所有正面項目
-    const positivePool = [];
-    for(const cand of candidates){
-      const pItems = extractPositiveItems(cand.a);
-      pItems.forEach(p=>{
-        if(p.length>=4 && !usedTexts.has(p.substring(0,15))){
-          positivePool.push(p);
-          usedTexts.add(p.substring(0,15));
-        }
-      });
-    }
-    shuffleArr(positivePool);
-    distractors.push(...positivePool.slice(0,3));
-
-    // 不夠就用預設的「可以做」
-    const posFallbacks = [
-      '洗澡沐浴、擦澡、床上洗頭',
-      '陪同就醫、代取處方藥',
-      '餐食照顧、備餐、加熱、餵食',
-      '翻身拍背、移位協助',
-      '陪同外出活動、心靈陪伴',
-      '代購物品、代辦事項'
-    ];
-    shuffleArr(posFallbacks);
-    while(distractors.length<3){
-      const fb = posFallbacks.pop();
-      if(fb && !usedTexts.has(fb.substring(0,15))){
-        distractors.push(fb); usedTexts.add(fb.substring(0,15));
-      } else break;
-    }
-  }
-  else if(questionType==='number'){
-    // 數字題的干擾 = 其他 QA 的數字描述
-    for(const cand of candidates){
-      if(distractors.length>=3) break;
-      const ca = cleanOptionText(cand.a);
-      const otherNum = ca.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
-      if(otherNum){
-        const dText = findNumberSentence(ca, otherNum[1]);
-        if(dText && dText.length>=4 && !usedTexts.has(dText.substring(0,15))){
-          distractors.push(dText); usedTexts.add(dText.substring(0,15));
-        }
+  if(questionType === 'negative'){
+    // 干擾 = 家天使「可以做的事」（從寫死的清單裡隨機挑 3 個）
+    const pool = [...POSITIVE_SERVICES];
+    shuffleArr(pool);
+    for(const p of pool){
+      if(distractors.length >= 3) break;
+      if(!usedTexts.has(p.substring(0,12))){
+        distractors.push(p);
+        usedTexts.add(p.substring(0,12));
       }
     }
   }
-  else{
-    // 基本題的干擾 = 其他 QA 的重點
+  else {
+    // 基本題 & 數字題：從其他 QA 抽重點
+    const sameCat = allItems.filter(x => x.catId === correctItem.sourceCatId && x.id !== correctItem.sourceId);
+    const diffCat = allItems.filter(x => x.catId !== correctItem.sourceCatId && x.id !== correctItem.sourceId);
+    shuffleArr(sameCat); shuffleArr(diffCat);
+    const candidates = [...sameCat, ...diffCat];
+
     for(const cand of candidates){
-      if(distractors.length>=3) break;
-      const dText = extractKeyPoint(cand.a);
-      if(dText && dText.length>=4 && !usedTexts.has(dText.substring(0,15))){
-        distractors.push(dText); usedTexts.add(dText.substring(0,15));
+      if(distractors.length >= 3) break;
+      let dText = '';
+      if(questionType === 'number'){
+        const ca = cleanOpt(cand.a);
+        const otherNum = ca.match(/(\d+\s*(?:小時|元|天|分鐘|%|人|點|次|萬|個月|工作天))/);
+        if(otherNum) dText = findNumberLine(ca, otherNum[1]);
+        else continue;
+      } else {
+        dText = extractKeyPoint(cand.a);
       }
+      if(!dText || dText.length < 6) continue;
+      if(!isGoodOption(dText)) continue;
+      if(usedTexts.has(dText.substring(0,12))) continue;
+      distractors.push(dText);
+      usedTexts.add(dText.substring(0,12));
     }
   }
 
-  // 通用備用選項
+  // 備用
   const fallbacks = [
     '需致電客服由人工安排，無法線上操作',
     '費用依各縣市政府公告標準收取',
     '需由家屬親自到場簽署同意書',
-    '服務完成後 7 天內以現金支付',
+    '服務完成後以現金支付給照服員',
     '僅限週一至週五上班時段提供服務',
     '需提前一週預約才能安排服務人員'
   ];
   shuffleArr(fallbacks);
-  while(distractors.length<3){
-    const fb = fallbacks.pop()||'以上皆非';
-    if(!usedTexts.has(fb.substring(0,15))){
-      distractors.push(fb); usedTexts.add(fb.substring(0,15));
+  while(distractors.length < 3){
+    const fb = fallbacks.pop() || '以上皆非';
+    if(!usedTexts.has(fb.substring(0,12))){
+      distractors.push(fb);
+      usedTexts.add(fb.substring(0,12));
     }
   }
-  return distractors.slice(0,3);
+  return distractors.slice(0, 3);
 }
 
 function beginQuiz(){
