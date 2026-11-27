@@ -339,6 +339,35 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
 }
 #mobileNav{display:none;gap:6px;overflow-x:auto;padding:8px 14px;background:#fff;border-bottom:1px solid var(--border);}
 #mobileNav button{white-space:nowrap;}
+
+/* ── 淺色主題（2026/11/27） ── */
+:root{--sidebar-bg:#ffffff;--sidebar-border:#f1e4dc;--main-bg:#faf7f5;--border-dark:#eadfd8;--text-sidebar:#374151;--text-sidebar-muted:#9a8f88;}
+#sidebar{box-shadow:1px 0 0 #f1e4dc;}
+.brand-name{color:#1a1d2e;}
+.brand-sub{color:#9a8f88;}
+.sb-search input{background:#faf7f5;border-color:#eadfd8;color:#1a1d2e;}
+.sb-search input::placeholder{color:#a8a29e;}
+.nav-label{color:#b0a39a;}
+.nav-item{color:#4b5563;}
+.nav-item:hover{background:#fff3ef;color:#1a1d2e;}
+.nav-item.active{background:#fff3ef;color:var(--accent);border-left-color:var(--accent);font-weight:600;}
+.nav-cnt{background:#f3ece7;color:#8a7f78;}
+.nav-item.active .nav-cnt{background:var(--accent);color:#fff;}
+.nav-eb{color:#9a8f88;} .nav-eb:hover{background:#f3ece7;color:#1a1d2e;}
+.ov-banner{background:linear-gradient(135deg,#fff 0%,#fff3ef 100%);border:1px solid #f6d5c7;color:#1a1d2e;}
+.ov-desc{color:#6b7280;}
+.ov-tag{background:#fff;border:1px solid #f1e4dc;color:#374151;}
+.ov-tag strong{color:var(--accent);}
+.stat-label{color:#8a7f78;}
+.quiz-banner,.quiz-result-banner{background:linear-gradient(135deg,#fff 0%,#fff3ef 100%)!important;border:1px solid #f6d5c7;color:#1a1d2e;}
+.quiz-banner-desc,.quiz-result-detail,.quiz-result-time,.quiz-q-label{color:#6b7280!important;}
+.quiz-info-item{background:#fff;color:#374151;border:1px solid #f1e4dc;}
+.quiz-q-btn{background:#fff;color:#374151;border-color:#eadfd8;}
+.quiz-q-btn:hover{background:#fff3ef;color:var(--accent);}
+.quiz-result-unit{color:#8a7f78;}
+.quiz-result-detail div,.quiz-result-detail span{color:#4b5563!important;}
+.quiz-result-detail span{background:#fff3ef!important;}
+.qa-a .cd-tb th{background:#fde7dd;color:#9a3412;}
 </style>
 </head>
 <body>
@@ -369,6 +398,9 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
     </div>
     <div id="navCats"></div>
     <div class="nav-label">工具</div>
+    <div class="nav-item" data-sec="train" onclick="showTrain()">
+      <span class="nav-icon">🎓</span> 新人訓練
+    </div>
     <div class="nav-item" data-sec="cases" onclick="showCases()">
       <span class="nav-icon">📞</span> 歷史案例
     </div>
@@ -398,6 +430,7 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
     <button class="btn btn-ghost" onclick="showCases()">📞 案例</button>
     <button class="btn btn-ghost" onclick="showStats()">📊 統計</button>
     <button class="btn btn-ghost" onclick="startQuizSetup()">📝 測驗</button>
+    <button class="btn btn-ghost" onclick="showTrain()">🎓 訓練</button>
   </div>
   <div class="content-area" id="contentArea">
 
@@ -467,6 +500,16 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
       <div class="pager" id="casePager"></div>
     </div>
 
+    <!-- Train -->
+    <div id="sec-train" class="hidden">
+      <div class="ask-box" style="margin-bottom:14px">
+        <div class="ask-title">🎓 家天使 新人教育訓練</div>
+        <div class="ask-sub">1 天課程：課前線上自學 1 小時＋實體上課 6 小時。上線後遇到問題，記得先查首頁的智慧問答。</div>
+        <div class="chips" id="trainTabs"></div>
+      </div>
+      <div id="trainBody"></div>
+    </div>
+
     <!-- Stats -->
     <div id="sec-stats" class="hidden"><div id="statsBody"></div></div>
 
@@ -477,7 +520,7 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
         <div class="quiz-banner">
           <div class="quiz-banner-icon">📝</div>
           <div class="quiz-banner-title">隨堂測驗</div>
-          <div class="quiz-banner-desc">從「常見問題」題庫隨機抽題，每次題目和選項順序都不一樣！</div>
+          <div class="quiz-banner-desc">從題庫隨機抽題，每次題目和選項順序都不一樣！</div>
           <div class="quiz-setup-info">
             <div class="quiz-info-item"><span class="quiz-info-icon">📚</span><span id="quizBankInfo">常見問題題庫</span></div>
             <div class="quiz-info-item"><span class="quiz-info-icon">🎯</span><span>每題 4 選 1</span></div>
@@ -523,7 +566,7 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
           <div class="quiz-result-time" id="quizResultTime">⏱ 用時 3 分 22 秒</div>
         </div>
         <div class="quiz-result-actions">
-          <button class="btn btn-primary" onclick="startQuizSetup()">🔄 再測一次</button>
+          <button class="btn btn-primary" onclick="startQuizSetup(true)">🔄 再測一次</button>
           <button class="btn btn-ghost" onclick="showSec('overview')">🏠 回首頁</button>
         </div>
         <div class="sec-hdr" style="margin-top:24px;"><div class="sec-title">📋 答題解析</div></div>
@@ -1029,14 +1072,14 @@ function showSec(name){
   document.getElementById('sec-overview').classList.toggle('hidden',name!=='overview');
   document.getElementById('sec-search').classList.add('hidden');
   document.getElementById('sec-quiz').classList.add('hidden');
-  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.toggle('hidden',name!==x));
+  ['cases','stats','train'].forEach(x=>document.getElementById('sec-'+x).classList.toggle('hidden',name!==x));
   // stop quiz timer if leaving quiz
   if(name!=='quiz' && quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
   // hide all cats
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.toggle('hidden',c.id!==name);});
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.sec===name));
   const cat=db.cats.find(c=>c.id===name);
-  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name==='quiz'?'📝 隨堂測驗':name==='cases'?'📞 歷史案例':name==='stats'?'📊 來電統計':name);
+  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name==='quiz'?'📝 隨堂測驗':name==='cases'?'📞 歷史案例':name==='train'?'🎓 新人訓練':name==='stats'?'📊 來電統計':name);
   curSec=name;
   document.getElementById('contentArea').scrollTop=0;
 }
@@ -1048,7 +1091,7 @@ function doSearch(q){
   const res=rankKB(q);
   document.getElementById('sec-overview').classList.add('hidden');
   document.getElementById('sec-quiz').classList.add('hidden');
-  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
+  ['cases','stats','train'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
   document.getElementById('sec-search').classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
@@ -1482,11 +1525,13 @@ function selectQuizCount(btn, n){
   btn.classList.add('active');
 }
 
-function startQuizSetup(){
+function startQuizSetup(keep){
+  if(!keep){QFILTER=['常見問題'];QLABEL='常見問題';}
+  const qi=document.getElementById('quizBankInfo');if(qi&&QBANK.length)qi.textContent=QLABEL+'題庫 '+QBANK.filter(b=>QFILTER.includes(b.topic||'常見問題')).length+' 題';
   document.getElementById('sec-overview').classList.add('hidden');
   document.getElementById('sec-search').classList.add('hidden');
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
-  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
+  ['cases','stats','train'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
   document.getElementById('sec-quiz').classList.remove('hidden');
   document.getElementById('quizSetup').classList.remove('hidden');
   document.getElementById('quizActive').classList.add('hidden');
@@ -1595,14 +1640,14 @@ function buildQuizQuestion(variant, allItems){
 }
 
 
-let QBANK=[];
+let QBANK=[],QFILTER=['常見問題'],QLABEL='常見問題';
+const TOPIC_ICON={'常見問題':'💬','服務與費用':'📋','預約付款取消':'💳','系統與後送通報':'📢'};
 function bankQuestions(n){
-  const cat=db.cats.find(c=>c.id==='intro')||{icon:'💬',name:'常見問題'};
-  const all=QBANK.slice();shuffleArr(all);
+  const all=QBANK.filter(b=>QFILTER.includes(b.topic||'常見問題'));shuffleArr(all);
   return all.slice(0,Math.min(n,all.length)).map(b=>{
     const opts=[{text:b.ans,correct:true}].concat(b.wrong.map(w=>({text:w,correct:false})));shuffleArr(opts);
     let src=null;Object.values(db.items).forEach(a=>a.forEach(x=>{if(x.id===b.src)src=x;}));
-    return {q:b.q,type:'bank',options:opts,correctIdx:opts.findIndex(o=>o.correct),fullA:'💡 '+b.exp+(src?'\n\n📖 知識庫原文「'+src.q+'」：\n'+src.a:''),catIcon:cat.icon,catName:cat.name};});
+    return {q:b.q,type:'bank',options:opts,correctIdx:opts.findIndex(o=>o.correct),fullA:'💡 '+b.exp+(src?'\n\n📖 知識庫原文「'+src.q+'」：\n'+src.a:''),catIcon:TOPIC_ICON[b.topic||'常見問題']||'📝',catName:b.topic||'常見問題'};});
 }
 function beginQuiz(){
   if(QBANK.length){
@@ -1894,7 +1939,8 @@ function showStats(){showSec('stats');const B=document.getElementById('statsBody
    <div class="panel"><div class="sec-title" style="margin-bottom:10px">🗂️ ECP 問題類型</div>${bars(by(c=>c.t),true)}</div>`;}
 function statTopic(t){showCases();document.getElementById('cfTopic').value=t;renderCases(1);}
 async function loadExtra(){
-  try{const rq=await fetch('./quiz.json?t='+Date.now());if(rq.ok){QBANK=await rq.json();const el=document.getElementById('quizBankInfo');if(el)el.textContent='常見問題題庫 '+QBANK.length+' 題';}}catch(e){}
+  try{const rt=await fetch('./train.json?t='+Date.now());if(rt.ok)TRAIN=await rt.json();}catch(e){}
+  try{const rq=await fetch('./quiz.json?t='+Date.now());if(rq.ok){QBANK=await rq.json();const el=document.getElementById('quizBankInfo');if(el)el.textContent='常見問題題庫 '+QBANK.filter(b=>(b.topic||'常見問題')==='常見問題').length+' 題';}}catch(e){}
   try{const [r1,r2]=await Promise.all([fetch('./cases.json?t='+Date.now()),fetch('./topics.json?t='+Date.now())]);
     if(r2.ok)TOPICS=await r2.json();
     if(r1.ok){CASES=await r1.json();CASES.forEach(c=>{c._tp=caseTopics(c.q);});CI=CASES.map(c=>({qb:bigr(normQ(c.q)),qs:normQ(c.q)}));}
@@ -1903,6 +1949,42 @@ async function loadExtra(){
   if(curSec==='search'){const v=document.getElementById('mainSearch').value;if(v)renderCaseHits(v);}
 }
 
+// ── 新人訓練 ──
+let TRAIN=null,trainTab='plan';
+function showTrain(){showSec('train');renderTrain();}
+function trainDone(){try{return JSON.parse(localStorage.getItem('ha_train_done')||'[]');}catch(e){return [];}}
+function toggleStudy(i){const d=trainDone();const k=d.indexOf(i);if(k>=0)d.splice(k,1);else d.push(i);try{localStorage.setItem('ha_train_done',JSON.stringify(d));}catch(e){}renderTrain();}
+function renderTrain(){
+  const tabs=[['plan','📅 課程表'],['study','✅ 課前自學'],['scen','🎭 情境演練'],['quiz','📝 主題測驗'],['files','📥 講義下載']];
+  document.getElementById('trainTabs').innerHTML=tabs.map(t=>`<button class="chip" style="${trainTab===t[0]?'background:var(--accent);color:#fff;border-color:var(--accent)':''}" onclick="trainTab='${t[0]}';renderTrain()">${t[1]}</button>`).join('');
+  const B=document.getElementById('trainBody');
+  if(!TRAIN){B.innerHTML='<div class="no-res">找不到 train.json（請確認已上傳到 GitHub）</div>';return;}
+  if(trainTab==='plan'){
+    const tot=TRAIN.plan.reduce((a,r)=>a+r[4],0);
+    B.innerHTML=`<div class="panel"><div class="sec-title" style="margin-bottom:10px">📅 課程表（共 ${tot} 小時）</div><div class="qa-a"><table class="cd-tb"><tr><th>時段</th><th>方式</th><th>課程主題</th><th>重點</th><th>時數</th></tr>${TRAIN.plan.map(r=>`<tr><td style="white-space:nowrap">${esc(r[0])}</td><td>${esc(r[1])}</td><td><b>${esc(r[2])}</b></td><td>${esc(r[3])}</td><td>${r[4]}</td></tr>`).join('')}</table></div>
+     <div class="cd-help">午休 12:10–13:10；上午 10:30、下午 14:40 各休息 10 分鐘。上線後第 1 個月，每週在「隨堂測驗」做 10 題複習。</div></div>`;
+  }else if(trainTab==='study'){
+    const d=trainDone();
+    B.innerHTML=`<div class="panel"><div class="sec-title" style="margin-bottom:4px">✅ 課前線上自學（約 1 小時）</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:12px">完成一項就打勾（只會記在你自己的瀏覽器）。已完成 ${d.length} / ${TRAIN.study.length}</div>
+     ${TRAIN.study.map((t,i)=>`<div class="news-row" onclick="toggleStudy(${i})" style="align-items:center"><span style="font-size:20px">${d.includes(i)?'✅':'⬜'}</span><span class="cd-n" style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span><span style="${d.includes(i)?'text-decoration:line-through;color:var(--text-muted)':''}">${esc(t)}</span></div>`).join('')}
+     <div class="chips" style="margin-top:12px"><button class="btn btn-primary" onclick="showSec('overview')">🏠 到首頁開始自學</button><button class="btn btn-ghost" onclick="startQuizSetup()">📝 做隨堂測驗</button></div></div>`;
+  }else if(trainTab==='scen'){
+    B.innerHTML=`<div class="panel"><div class="sec-title" style="margin-bottom:6px">🎭 怎麼練</div><div class="qa-a"><ol class="cd-steps"><li><span class="cd-n">1</span><div>兩人一組：一人扮客人（照台詞演，可以自由發揮情緒），一人當客服</div></li><li><span class="cd-n">2</span><div>每個情境 6～8 分鐘：演 4 分鐘 → 觀察員用檢核表打勾 → 對照「標準回應重點」討論 2 分鐘</div></li><li><span class="cd-n">3</span><div>客服可以邊講邊查網站，但不要整段念給客人聽</div></li></ol><div class="cd-box cd-tip"><span class="ic">💡</span><div><b>共通檢核表：</b>${TRAIN.check.map(c=>'⬜ '+esc(c)).join('　')}</div></div></div></div>
+      <div class="qa-list">${TRAIN.scenarios.map((sc,i)=>`<div class="qa-card"><div class="qa-hdr" onclick="togCard(this)"><div style="flex:1"><div class="qa-q">情境 ${i+1}　${esc(sc.title)}</div><div class="qa-tags"><span class="qa-tag tag-yellow">難度 ${sc.level}</span><span class="qa-tag tag-blue">${esc(sc.kb)}</span></div></div><span class="qa-chev">▼</span></div>
+       <div class="qa-body"><div class="qa-a">${renderA('{tip}'+sc.bg+'{/tip}\n{table}\n角色 | 台詞／做法\n'+sc.dialog.map(d=>d[0]+' | '+d[1].replace(/\|/g,'／')).join('\n')+'\n{/table}\n**標準回應重點**\n{steps}\n'+sc.keys.join('\n')+'\n{/steps}'+(sc.notify?'\n{warn}LINE 通報範本：'+sc.notify+'{/warn}':'')+'\n{no}常見錯誤：'+sc.wrong.join('／')+'{/no}')}</div></div></div>`).join('')}</div>`;
+  }else if(trainTab==='quiz'){
+    const cnt=t=>QBANK.filter(b=>(b.topic||'常見問題')===t).length;
+    const T=['常見問題','服務與費用','預約付款取消','系統與後送通報'];
+    B.innerHTML=`<div class="st-grid">${T.map(t=>`<div class="st-box" style="cursor:pointer" onclick="startTopicQuiz(['${t}'],10,'${t}')"><div style="font-size:26px">${TOPIC_ICON[t]}</div><div style="font-weight:700;margin:4px 0">${t}</div><div class="st-l">${cnt(t)} 題・點我隨機考 10 題</div></div>`).join('')}</div>
+      <div class="panel" style="text-align:center"><div class="sec-title" style="margin-bottom:6px">🏁 結訓模擬考</div><div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">從全部 ${QBANK.length} 題隨機抽 30 題，24 分以上及格（每題 1 分，畫面顯示百分制，80 分＝及格）</div><button class="quiz-start-btn" onclick="startTopicQuiz(T_ALL,30,'結訓模擬')">🚀 開始模擬考</button></div>`;
+  }else{
+    B.innerHTML=`<div class="panel"><div class="sec-title" style="margin-bottom:10px">📥 講義下載</div>${TRAIN.files.map(f=>`<div class="news-row"><a class="qa-link" href="${encodeURI(f[1])}" download>${esc(f[0])}</a></div>`).join('')}<div class="cd-help">檔案可用 WPS 或 Office 開啟。結訓測驗卷的答案只放在督導的 Excel，不放在網站上。</div></div>`;
+  }
+  document.getElementById('contentArea').scrollTop=0;
+}
+const T_ALL=['常見問題','服務與費用','預約付款取消','系統與後送通報'];
+function startTopicQuiz(topics,n,label){QFILTER=topics;QLABEL=label;quizCount=n;startQuizSetup(true);
+  document.querySelectorAll('.quiz-q-btn').forEach(b=>b.classList.toggle('active',b.textContent.trim()===n+' 題'));beginQuiz();}
 // ── INIT ──
 // 優先從 data.json 載入（GitHub 同步用），失敗才用 localStorage
 async function init(){
