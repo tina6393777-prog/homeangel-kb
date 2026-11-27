@@ -477,9 +477,9 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
         <div class="quiz-banner">
           <div class="quiz-banner-icon">📝</div>
           <div class="quiz-banner-title">隨堂測驗</div>
-          <div class="quiz-banner-desc">從知識庫隨機抽題，測試你對家天使服務的熟悉度！</div>
+          <div class="quiz-banner-desc">從「常見問題」題庫隨機抽題，每次題目和選項順序都不一樣！</div>
           <div class="quiz-setup-info">
-            <div class="quiz-info-item"><span class="quiz-info-icon">📚</span><span>全分類混合出題</span></div>
+            <div class="quiz-info-item"><span class="quiz-info-icon">📚</span><span id="quizBankInfo">常見問題題庫</span></div>
             <div class="quiz-info-item"><span class="quiz-info-icon">🎯</span><span>每題 4 選 1</span></div>
             <div class="quiz-info-item"><span class="quiz-info-icon">📊</span><span>答完立即看成績與解析</span></div>
           </div>
@@ -489,6 +489,7 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
               <button class="quiz-q-btn" onclick="selectQuizCount(this,10)">10 題</button>
               <button class="quiz-q-btn active" onclick="selectQuizCount(this,15)">15 題</button>
               <button class="quiz-q-btn" onclick="selectQuizCount(this,20)">20 題</button>
+              <button class="quiz-q-btn" onclick="selectQuizCount(this,30)">30 題</button>
             </div>
           </div>
           <button class="quiz-start-btn" onclick="beginQuiz()">🚀 開始測驗</button>
@@ -1594,7 +1595,22 @@ function buildQuizQuestion(variant, allItems){
 }
 
 
+let QBANK=[];
+function bankQuestions(n){
+  const cat=db.cats.find(c=>c.id==='intro')||{icon:'💬',name:'常見問題'};
+  const all=QBANK.slice();shuffleArr(all);
+  return all.slice(0,Math.min(n,all.length)).map(b=>{
+    const opts=[{text:b.ans,correct:true}].concat(b.wrong.map(w=>({text:w,correct:false})));shuffleArr(opts);
+    let src=null;Object.values(db.items).forEach(a=>a.forEach(x=>{if(x.id===b.src)src=x;}));
+    return {q:b.q,type:'bank',options:opts,correctIdx:opts.findIndex(o=>o.correct),fullA:'💡 '+b.exp+(src?'\n\n📖 知識庫原文「'+src.q+'」：\n'+src.a:''),catIcon:cat.icon,catName:cat.name};});
+}
 function beginQuiz(){
+  if(QBANK.length){
+    quizQuestions=bankQuestions(quizCount);
+    quizCurrent=0;quizAnswers=new Array(quizQuestions.length).fill(-1);
+    document.getElementById('quizSetup').classList.add('hidden');document.getElementById('quizActive').classList.remove('hidden');document.getElementById('quizResult').classList.add('hidden');
+    quizStartTime=Date.now();if(quizTimerInterval)clearInterval(quizTimerInterval);quizTimerInterval=setInterval(updateQuizTimer,1000);updateQuizTimer();renderQuizQuestion();return;
+  }
   var allItems = [];
   db.cats.forEach(function(cat){
     if(cat.id==='history') return;
@@ -1763,7 +1779,7 @@ function submitQuiz(){
     const isCorrect = quizAnswers[i]===q.correctIdx;
     const card = document.createElement('div');
     card.className = 'quiz-review-card '+(isCorrect?'right-card':'wrong-card');
-    const typeLabel = q.type==='negative'?'⛔ 反向題':'📋 問答題';
+    const typeLabel = q.type==='negative'?'⛔ 反向題':q.type==='bank'?'📋 題庫題':'📋 問答題';
     let optsHTML = q.options.map(function(opt,oi){
       let cls = 'quiz-opt', marker = '';
       if(oi===q.correctIdx && oi===quizAnswers[i]){cls+=' correct';marker='✓ 你的答案（正確）';}
@@ -1878,6 +1894,7 @@ function showStats(){showSec('stats');const B=document.getElementById('statsBody
    <div class="panel"><div class="sec-title" style="margin-bottom:10px">🗂️ ECP 問題類型</div>${bars(by(c=>c.t),true)}</div>`;}
 function statTopic(t){showCases();document.getElementById('cfTopic').value=t;renderCases(1);}
 async function loadExtra(){
+  try{const rq=await fetch('./quiz.json?t='+Date.now());if(rq.ok){QBANK=await rq.json();const el=document.getElementById('quizBankInfo');if(el)el.textContent='常見問題題庫 '+QBANK.length+' 題';}}catch(e){}
   try{const [r1,r2]=await Promise.all([fetch('./cases.json?t='+Date.now()),fetch('./topics.json?t='+Date.now())]);
     if(r2.ok)TOPICS=await r2.json();
     if(r1.ok){CASES=await r1.json();CASES.forEach(c=>{c._tp=caseTopics(c.q);});CI=CASES.map(c=>({qb:bigr(normQ(c.q)),qs:normQ(c.q)}));}
