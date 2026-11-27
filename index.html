@@ -272,6 +272,73 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
 .quiz-review-badge.wrong-badge{background:#fee2e2;color:#b91c1c;}
 .quiz-review-answer{font-size:13px;color:var(--text-secondary);line-height:1.8;margin-top:8px;padding:10px 12px;background:var(--main-bg);border-radius:8px;white-space:pre-wrap;}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+/* ── 圖卡語法 ── */
+.qa-a .cd-steps{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:6px;white-space:normal;}
+.qa-a .cd-steps li{display:flex;gap:10px;align-items:flex-start;background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text-primary);}
+.qa-a .cd-n{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.qa-a .cd-tb{border-collapse:collapse;width:100%;margin:6px 0;font-size:13px;white-space:normal;}
+.qa-a .cd-tb th{background:#1a2038;color:#fff;font-weight:600;text-align:left;padding:7px 10px;}
+.qa-a .cd-tb td{border-bottom:1px solid var(--border);padding:7px 10px;color:var(--text-primary);vertical-align:top;}
+.qa-a .cd-tb tr:nth-child(even) td{background:#f8fafc;}
+.qa-a .cd-box{display:flex;gap:9px;border-radius:8px;padding:9px 12px;margin:6px 0;white-space:pre-wrap;color:var(--text-primary);}
+.qa-a .cd-box .ic{flex-shrink:0;}
+.cd-tip{background:#eff6ff;border-left:4px solid #3b82f6;}
+.cd-warn{background:#fff7ed;border-left:4px solid #f97316;}
+.cd-ok{background:#f0fdf4;border-left:4px solid #22c55e;}
+.cd-no{background:#fef2f2;border-left:4px solid #ef4444;}
+.qa-a .cd-flow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:6px 0;white-space:normal;}
+.qa-a .cd-flow span.st{background:var(--accent-bg);color:var(--accent);border:1px solid #fcd3c3;border-radius:20px;padding:3px 11px;font-size:13px;font-weight:600;}
+.qa-a .cd-flow span.ar{color:var(--text-muted);font-size:12px;}
+
+/* ── 智慧問答 ── */
+.ask-box{background:linear-gradient(135deg,#fff3ef,#fff);border:2px solid #fcd3c3;border-radius:14px;padding:18px 20px;margin-bottom:20px;}
+.ask-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.ask-sub{font-size:13px;color:var(--text-secondary);margin-bottom:10px;}
+.ask-row{display:flex;gap:8px;}
+.ask-row input{flex:1;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;outline:none;}
+.ask-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(232,93,47,.12);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.chip{font-size:12px;padding:4px 10px;border-radius:20px;background:#fff;border:1px solid var(--border);cursor:pointer;color:var(--text-secondary);font-family:inherit;}
+.chip:hover{border-color:var(--accent);color:var(--accent);}
+.chip b{color:var(--accent);margin-left:3px;}
+.best-lbl{font-size:13px;font-weight:700;color:#15803d;margin:4px 0 6px;}
+.score-badge{font-size:11px;padding:1px 7px;border-radius:10px;background:#f1f5f9;color:var(--text-muted);margin-left:6px;font-weight:500;}
+.case-card{background:var(--card-bg);border:1px solid var(--border);border-left:4px solid #94a3b8;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:13px;}
+.case-card.esc{border-left-color:#f97316;}
+.case-meta{font-size:11px;color:var(--text-muted);margin-bottom:4px;display:flex;gap:8px;flex-wrap:wrap;}
+.case-q{color:var(--text-primary);font-weight:500;line-height:1.6;white-space:pre-wrap;}
+.case-a{color:var(--text-secondary);margin-top:5px;line-height:1.6;white-space:pre-wrap;}
+.case-a:before{content:'💬 當時回覆：';color:#15803d;font-weight:600;}
+.pill{padding:1px 7px;border-radius:10px;background:#f1f5f9;}
+.pill.o{background:#ffedd5;color:#c2410c;}
+.flt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.flt input,.flt select{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;}
+.flt input{flex:1;min-width:180px;}
+.pager{display:flex;gap:6px;justify-content:center;margin:12px 0;}
+/* stats */
+.st-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+.st-box{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.st-n{font-size:24px;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace;}
+.st-l{font-size:12px;color:var(--text-muted);}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;cursor:pointer;}
+.bar-row:hover .bar-lbl{color:var(--accent);}
+.bar-lbl{width:150px;flex-shrink:0;text-align:right;color:var(--text-secondary);}
+.bar-trk{flex:1;background:#f1f5f9;border-radius:5px;height:18px;position:relative;overflow:hidden;}
+.bar-fill{height:100%;background:#fdba74;border-radius:5px;}
+.bar-fill2{position:absolute;left:0;top:0;height:100%;background:#ea580c;border-radius:5px;}
+.bar-val{width:90px;font-size:12px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.panel{background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.news-row{padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer;display:flex;gap:8px;}
+.news-row:hover{color:var(--accent);}
+.cd-help{font-size:12px;color:var(--text-muted);background:var(--main-bg);border-radius:7px;padding:8px 10px;margin-top:6px;line-height:1.8;}
+@media (max-width:820px){
+  #sidebar{display:none;} .tb-search input{width:150px;} .tb-search input:focus{width:180px;}
+  .mem-grid{grid-template-columns:1fr;} .content-area{padding:14px;} .bar-lbl{width:100px;}
+  #mobileNav{display:flex!important;}
+}
+#mobileNav{display:none;gap:6px;overflow-x:auto;padding:8px 14px;background:#fff;border-bottom:1px solid var(--border);}
+#mobileNav button{white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -302,6 +369,12 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
     </div>
     <div id="navCats"></div>
     <div class="nav-label">工具</div>
+    <div class="nav-item" data-sec="cases" onclick="showCases()">
+      <span class="nav-icon">📞</span> 歷史案例
+    </div>
+    <div class="nav-item" data-sec="stats" onclick="showStats()">
+      <span class="nav-icon">📊</span> 來電統計
+    </div>
     <div class="nav-item" data-sec="quiz" onclick="startQuizSetup()">
       <span class="nav-icon">📝</span> 隨堂測驗
     </div>
@@ -314,16 +387,33 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
     <div class="topbar-title" id="topbarTitle">廠商快覽</div>
     <div class="tb-search">
       <span class="si">🔍</span>
-      <input type="text" id="mainSearch" placeholder="搜尋問題、關鍵字…">
+      <input type="text" id="mainSearch" placeholder="直接打客人的問題…">
     </div>
     <button class="btn btn-ghost" onclick="requestEdit()" id="editBtn">🔑 編輯模式</button>
     <button class="btn btn-primary hidden edit-only" onclick="openAddModal()" id="addBtn">＋ 新增條目</button>
     <button class="btn btn-ghost hidden edit-only" onclick="openAdminModal()" id="adminBtn" style="border-color:var(--accent);color:var(--accent)">⚙️ 後台設定</button>
   </div>
+  <div id="mobileNav">
+    <button class="btn btn-ghost" onclick="showSec('overview')">🏠 首頁</button>
+    <button class="btn btn-ghost" onclick="showCases()">📞 案例</button>
+    <button class="btn btn-ghost" onclick="showStats()">📊 統計</button>
+    <button class="btn btn-ghost" onclick="startQuizSetup()">📝 測驗</button>
+  </div>
   <div class="content-area" id="contentArea">
 
     <!-- Overview -->
     <div id="sec-overview">
+      <div class="ask-box">
+        <div class="ask-title">🤖 客人問什麼？直接打一句話</div>
+        <div class="ask-sub">不用打對關鍵字，例如「颱風天可以退錢嗎」「看護沒來怎麼辦」「忘記帳號」，會列出最相關的標準答案和今年類似案例。</div>
+        <div class="ask-row">
+          <input type="text" id="askInput" placeholder="輸入客人的問題…" onkeydown="if(event.key==='Enter')askNow()">
+          <button class="btn btn-primary" onclick="askNow()">查詢</button>
+        </div>
+        <div class="chips" id="hotChips"></div>
+      </div>
+      <div class="sec-hdr"><div class="sec-title">📢 最新公告</div><div class="sec-cnt" id="newsUpd"></div></div>
+      <div class="panel" id="newsPanel" style="padding:4px 16px;"></div>
       <div class="ov-banner" id="ovBanner">
         <div>
           <div class="ov-title" id="ovTitle">🏠 家天使 (Home Angel) <button class="ov-edit-btn edit-only hidden" onclick="openOvModal()">✏️ 編輯</button></div>
@@ -359,7 +449,26 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
         <div class="sr-cnt" id="srCnt"></div>
       </div>
       <div class="qa-list" id="list-search"></div>
+      <div id="caseSearch"></div>
     </div>
+
+    <!-- Cases -->
+    <div id="sec-cases" class="hidden">
+      <div class="sec-hdr"><div class="sec-title">📞 今年歷史案例</div><div class="sec-cnt" id="caseCnt"></div></div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">來源：ECP 服務紀錄（已移除姓名、電話、地址、訂單編號）。回覆內容是同仁當時的說法，僅供參考，正式說法以知識庫為準。</div>
+      <div class="flt">
+        <input type="text" id="cfQ" placeholder="搜尋案例內容…" oninput="renderCases(1)">
+        <select id="cfT" onchange="renderCases(1)"></select>
+        <select id="cfTopic" onchange="renderCases(1)"></select>
+        <select id="cfS" onchange="renderCases(1)"><option value="">全部狀態</option><option>已接受說明</option><option>需專人回電</option></select>
+        <select id="cfM" onchange="renderCases(1)"></select>
+      </div>
+      <div id="caseList"></div>
+      <div class="pager" id="casePager"></div>
+    </div>
+
+    <!-- Stats -->
+    <div id="sec-stats" class="hidden"><div id="statsBody"></div></div>
 
     <!-- Quiz -->
     <div id="sec-quiz" class="hidden">
@@ -442,7 +551,17 @@ mark{background:var(--hl-yellow);border-radius:2px;padding:0 1px;}
           <button class="hl-btn" style="background:var(--hl-pink)" onclick="insHL('p')">粉底</button>
           <button class="hl-btn" style="background:#e5e7eb" onclick="insBold()"><strong>粗體</strong></button>
         </div>
-        <textarea class="ft" id="eA" placeholder="輸入內容。重點語法：{hl-y}文字{/hl} 黃底、{hl-o}文字{/hl} 橘底、**粗體**"></textarea>
+        <div class="hl-tb">
+          <button class="hl-btn" style="background:#ffedd5" onclick="insCard('steps')">① 步驟圖卡</button>
+          <button class="hl-btn" style="background:#e2e8f0" onclick="insCard('table')">▦ 表格</button>
+          <button class="hl-btn" style="background:#fde7dd" onclick="insCard('flow')">➜ 流程</button>
+          <button class="hl-btn" style="background:#dbeafe" onclick="insCard('tip')">💡 提示</button>
+          <button class="hl-btn" style="background:#ffedd5" onclick="insCard('warn')">⚠️ 注意</button>
+          <button class="hl-btn" style="background:#dcfce7" onclick="insCard('ok')">✅ 可以</button>
+          <button class="hl-btn" style="background:#fee2e2" onclick="insCard('no')">⛔ 不行</button>
+        </div>
+        <textarea class="ft" id="eA" style="min-height:200px" placeholder="輸入內容。重點語法：{hl-y}文字{/hl} 黃底、{hl-o}文字{/hl} 橘底、**粗體**"></textarea>
+        <div class="cd-help">圖卡語法：<b>{steps}</b>每行一個步驟<b>{/steps}</b>　<b>{table}</b>第一行標題，欄位用 | 分隔<b>{/table}</b>　<b>{flow}</b>A &gt; B &gt; C<b>{/flow}</b>　<b>{tip}</b>提示文字<b>{/tip}</b>（還有 warn／ok／no）</div>
       </div>
       <div class="fr">
         <div class="fg"><label class="fl">分類</label>
@@ -831,7 +950,9 @@ function renderCatSections(){
 }
 
 function renderAll(){
+  buildIndex();
   renderOverview();
+  if(document.getElementById('newsPanel'))renderHome();
   renderNav();
   renderCatSections();
   document.getElementById('catLabel').querySelector('.nav-label-btn').classList.toggle('hidden',!editMode);
@@ -881,6 +1002,13 @@ function setupDrag(container,cat){
 function renderA(text){
   if(!text)return'';
   let h=esc(text);
+  const lines=s=>s.split('\n').map(x=>x.trim()).filter(Boolean);
+  h=h.replace(/\n?\{steps\}\n?([\s\S]*?)\n?\{\/steps\}\n?/g,(m,b)=>'<ol class="cd-steps">'+lines(b).map((l,i)=>'<li><span class="cd-n">'+(i+1)+'</span><div>'+l+'</div></li>').join('')+'</ol>');
+  h=h.replace(/\n?\{table\}\n?([\s\S]*?)\n?\{\/table\}\n?/g,(m,b)=>{const L=lines(b).map(l=>l.split('|').map(c=>c.trim()));if(!L.length)return'';
+    return '<table class="cd-tb"><tr>'+L[0].map(c=>'<th>'+c+'</th>').join('')+'</tr>'+L.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';});
+  h=h.replace(/\{flow\}([\s\S]*?)\{\/flow\}\n?/g,(m,b)=>'<div class="cd-flow">'+b.split(/\s*&gt;\s*|\s*→\s*/).filter(Boolean).map(x=>'<span class="st">'+x.trim()+'</span>').join('<span class="ar">▶</span>')+'</div>');
+  const BX={tip:'💡',warn:'⚠️',ok:'✅',no:'⛔'};
+  h=h.replace(/\n?\{(tip|warn|ok|no)\}([\s\S]*?)\{\/\1\}\n?/g,(m,k,b)=>'<div class="cd-box cd-'+k+'"><span class="ic">'+BX[k]+'</span><div>'+b.trim()+'</div></div>');
   h=h.replace(/\{hl-y\}([\s\S]*?)\{\/hl\}/g,'<span class="hl-y">$1</span>');
   h=h.replace(/\{hl-o\}([\s\S]*?)\{\/hl\}/g,'<span class="hl-o">$1</span>');
   h=h.replace(/\{hl-g\}([\s\S]*?)\{\/hl\}/g,'<span class="hl-g">$1</span>');
@@ -900,13 +1028,14 @@ function showSec(name){
   document.getElementById('sec-overview').classList.toggle('hidden',name!=='overview');
   document.getElementById('sec-search').classList.add('hidden');
   document.getElementById('sec-quiz').classList.add('hidden');
+  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.toggle('hidden',name!==x));
   // stop quiz timer if leaving quiz
   if(name!=='quiz' && quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null;}
   // hide all cats
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.toggle('hidden',c.id!==name);});
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.sec===name));
   const cat=db.cats.find(c=>c.id===name);
-  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name==='quiz'?'📝 隨堂測驗':name);
+  document.getElementById('topbarTitle').textContent=name==='overview'?'廠商快覽':(cat?cat.icon+' '+cat.name:name==='quiz'?'📝 隨堂測驗':name==='cases'?'📞 歷史案例':name==='stats'?'📊 來電統計':name);
   curSec=name;
   document.getElementById('contentArea').scrollTop=0;
 }
@@ -915,35 +1044,34 @@ function showSec(name){
 let stimer;
 function doSearch(q){
   if(!q.trim()){showSec(curSec==='search'?'overview':curSec);return;}
-  const ql=q.toLowerCase();
-  const res=[];
-  db.cats.forEach(cat=>{
-    (db.items[cat.id]||[]).forEach(item=>{
-      if((item.q||'').toLowerCase().includes(ql)||(item.a||'').toLowerCase().includes(ql))
-        res.push({item,catId:cat.id,catName:cat.icon+' '+cat.name});
-    });
-  });
-  // hide all
+  const res=rankKB(q);
   document.getElementById('sec-overview').classList.add('hidden');
   document.getElementById('sec-quiz').classList.add('hidden');
+  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
   document.getElementById('sec-search').classList.remove('hidden');
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
-  document.getElementById('topbarTitle').textContent='搜尋結果';
-  document.getElementById('srCnt').textContent=`找到 ${res.length} 筆`;
+  document.getElementById('topbarTitle').textContent='🤖 問答結果';
+  document.getElementById('srCnt').textContent=res.length?`找到 ${res.length} 筆相關條目（依相關程度排序）`:'';
   curSec='search';
   const list=document.getElementById('list-search');list.innerHTML='';
-  if(!res.length){list.innerHTML=`<div class="no-res"><div class="no-res-icon">🔍</div>找不到「${esc(q)}」的相關資料</div>`;return;}
-  res.forEach(({item,catId,catName})=>{
-    const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;color:var(--text-muted);margin-bottom:3px;padding-left:2px;';lbl.textContent=catName;
-    const card=buildCard(item,catId,0);
-    const qEl=card.querySelector('.qa-q');if(qEl)qEl.innerHTML=hlMark(qEl.textContent,q);
-    const aEl=card.querySelector('.qa-a');if(aEl)aEl.innerHTML=hlMark(aEl.innerHTML,q);
+  if(!res.length){list.innerHTML=`<div class="no-res"><div class="no-res-icon">🔍</div>知識庫找不到「${esc(q)}」的相關資料，可參考下方歷史案例，或 LINE 通報家天使</div>`;}
+  const words=qWords(q);
+  res.slice(0,12).forEach(({item,cat,score},i)=>{
+    if(i===0){const b=document.createElement('div');b.className='best-lbl';b.textContent='💡 最可能的答案';list.appendChild(b);}
+    if(i===1){const b=document.createElement('div');b.className='best-lbl';b.style.color='var(--text-secondary)';b.textContent='📚 其他相關條目';list.appendChild(b);}
+    const lbl=document.createElement('div');lbl.style.cssText='font-size:11px;color:var(--text-muted);margin-bottom:3px;padding-left:2px;';
+    lbl.innerHTML=esc(cat.icon+' '+cat.name)+'<span class="score-badge">相關度 '+Math.min(99,Math.round(score*100))+'%</span>';
+    const card=buildCard(item,cat.id,0);
+    const qEl=card.querySelector('.qa-q');if(qEl)qEl.innerHTML=hlWords(esc(item.q),words);
+    if(i===0)card.classList.add('open');
     list.appendChild(lbl);list.appendChild(card);
   });
+  renderCaseHits(q);
+  document.getElementById('contentArea').scrollTop=0;
 }
 function hlMark(html,q){if(!q)return html;const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return html.replace(re,'<mark>$1</mark>');}
-document.getElementById('mainSearch').addEventListener('input',e=>{clearTimeout(stimer);stimer=setTimeout(()=>doSearch(e.target.value),200);});
+document.getElementById('mainSearch').addEventListener('input',e=>{clearTimeout(stimer);stimer=setTimeout(()=>doSearch(e.target.value),350);});
 document.getElementById('sbSearch').addEventListener('input',e=>{clearTimeout(stimer);const v=e.target.value;document.getElementById('mainSearch').value=v;stimer=setTimeout(()=>doSearch(v),200);});
 
 // ── EDIT MODE ──
@@ -1026,6 +1154,12 @@ function addLR(lb='',u=''){
 
 // ── HIGHLIGHT / BOLD INSERT ──
 function insHL(c){const ta=document.getElementById('eA');const s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.substring(s,e)||'文字';const ins=`{hl-${c}}${sel}{/hl}`;ta.value=ta.value.substring(0,s)+ins+ta.value.substring(e);ta.focus();ta.setSelectionRange(s+ins.length,s+ins.length);}
+function insCard(k){
+  const ta=document.getElementById('eA');const s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.substring(s,e);
+  const tpl={steps:'{steps}\n'+(sel||'第一步\n第二步\n第三步')+'\n{/steps}',table:'{table}\n'+(sel||'項目 | 說明\n內容A | 內容B')+'\n{/table}',flow:'{flow}'+(sel||'步驟一 > 步驟二 > 步驟三')+'{/flow}'};
+  const ins=tpl[k]||('{'+k+'}'+(sel||'文字')+'{/'+k+'}');
+  ta.value=ta.value.substring(0,s)+ins+ta.value.substring(e);ta.focus();ta.setSelectionRange(s+ins.length,s+ins.length);
+}
 function insBold(){const ta=document.getElementById('eA');const s=ta.selectionStart,e=ta.selectionEnd;const sel=ta.value.substring(s,e)||'文字';const ins=`**${sel}**`;ta.value=ta.value.substring(0,s)+ins+ta.value.substring(e);ta.focus();}
 
 // ── IMAGE UPLOAD ──
@@ -1351,6 +1485,7 @@ function startQuizSetup(){
   document.getElementById('sec-overview').classList.add('hidden');
   document.getElementById('sec-search').classList.add('hidden');
   db.cats.forEach(c=>{const el=document.getElementById('sec-'+c.id);if(el)el.classList.add('hidden');});
+  ['cases','stats'].forEach(x=>document.getElementById('sec-'+x).classList.add('hidden'));
   document.getElementById('sec-quiz').classList.remove('hidden');
   document.getElementById('quizSetup').classList.remove('hidden');
   document.getElementById('quizActive').classList.add('hidden');
@@ -1369,7 +1504,7 @@ function startQuizSetup(){
 // 品質穩定、長度均勻、不會截斷
 //
 
-function cleanHL(t){return(t||'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');}
+function cleanHL(t){return(t||'').replace(/\{\/?(steps|table|flow|tip|warn|ok|no)\}/g,'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');}
 
 // 從答案中取得「合格的 highlight 關鍵詞」當正確選項
 function getValidHL(rawA){
@@ -1462,6 +1597,7 @@ function buildQuizQuestion(variant, allItems){
 function beginQuiz(){
   var allItems = [];
   db.cats.forEach(function(cat){
+    if(cat.id==='history') return;
     (db.items[cat.id]||[]).forEach(function(item){
       if(item.q && item.a && item.a.trim().length > 10){
         allItems.push({id:item.id, q:item.q, a:item.a, tags:item.tags, links:item.links, imgs:item.imgs, catId:cat.id, catIcon:cat.icon, catName:cat.name});
@@ -1506,7 +1642,7 @@ function beginQuiz(){
 
 function stripSyntax(text){
   if(!text)return '';
-  let t = text.replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
+  let t = text.replace(/\{\/?(steps|table|flow|tip|warn|ok|no)\}/g,'').replace(/\{hl-[yobgp]\}/g,'').replace(/\{\/hl\}/g,'').replace(/\*\*/g,'');
   if(t.length > 120) t = t.substring(0,117) + '…';
   return t.trim();
 }
@@ -1659,6 +1795,97 @@ function submitQuiz(){
   document.getElementById('contentArea').scrollTop=0;
 }
 
+// ── 智慧問答引擎（不用 AI，瀏覽器內計算，資料不外流） ──
+const SYN=[['看護','照服員','cg','照顧服務員','家天使','服務人員','人員'],['取消','退訂','不要了','不需要'],['費用','價格','多少錢','收費','價錢','計費','金額'],
+ ['颱風','停班','停課','天災'],['帳號','登入','密碼','驗證碼','註冊'],['收據','發票','統編','載具'],['退款','退費','刷退','退錢','退還'],
+ ['改時間','修改','更改','改期','調整','延後','提前'],['付款','繳費','轉帳','刷卡','信用卡','超商','atm'],['醫院','住院','病房','出院'],
+ ['24小時','全天','24h','多天'],['馬上','立即','今天','急','臨時'],['加時','延長','加天'],['違約金','手續費','扣款'],['沒來','未到','遲到','聯絡不上','聯繫不上'],
+ ['往生','過世','去世'],['外籍','外勞','印尼'],['長照','補助','1966','公費'],['打卡','簽到','簽退'],['優惠','折扣','點數','優惠碼','推薦碼'],['兩位','兩個','兩老','兩人','夫妻','一人','一位'],['長輩','老人','阿公','阿嬤','爺爺','奶奶','被照顧者','服務對象'],['醫師','醫生','到府'],['忘記','不記得']];
+const STOPW=['請問','我想','想要','可以','怎麼辦','怎麼','如何','是否','嗎','呢','客人','客戶','詢問','表示','來電','你們','我們','的','了','要','有沒有','能不能','一下'];
+function normQ(s){s=(s||'').toLowerCase().replace(/\{[^}]*\}|\*\*/g,' ');return s;}
+function bigr(s){s=s.replace(/[^\u4e00-\u9fffa-z0-9]/g,'');const o=new Set();for(let i=0;i<s.length-1;i++)o.add(s.substr(i,2));if(s.length===1)o.add(s);return o;}
+function qWords(q){let s=normQ(q);STOPW.forEach(w=>s=s.split(w).join(' '));return s.split(/[\s,，。？?！!、]+/).filter(w=>w.length>=2);}
+function expandQ(q){const base=normQ(q);let s=base;STOPW.forEach(w=>s=s.split(w).join(' '));const main=bigr(s);const ext=new Set();
+  SYN.forEach(g=>{if(g.some(w=>base.includes(w)))g.forEach(w=>bigr(w).forEach(b=>{if(!main.has(b))ext.add(b);}));});return {main,ext};}
+let KBI=[],DF={},NDOC=1;
+function idf(b){return Math.log(1+NDOC/(1+(DF[b]||0)));}
+function buildIndex(){KBI=[];db.cats.forEach(cat=>(db.items[cat.id]||[]).forEach(item=>{
+  const tg=(item.tags||[]).map(t=>t.t).join(' ');
+  KBI.push({item,cat,qb:bigr(normQ(item.q)),tb:bigr(normQ(tg+' '+cat.name)),ab:bigr(normQ(item.a)),qs:normQ(item.q)});}));
+  DF={};NDOC=KBI.length;KBI.forEach(d=>new Set([...d.qb,...d.ab]).forEach(b=>DF[b]=(DF[b]||0)+1));}
+function scoreDoc(d,E,words){let sc=0,n=0;
+  E.main.forEach(b=>{const w=idf(b);n+=w;if(d.qb.has(b))sc+=3*w;else if(d.tb.has(b))sc+=1.5*w;if(d.ab.has(b))sc+=w;});
+  E.ext.forEach(b=>{const w=idf(b);if(d.qb.has(b))sc+=w;else if(d.ab.has(b))sc+=.3*w;});
+  words.forEach(w=>{if(w.length>=3&&d.qs.includes(w))sc+=w.length*1.5;});
+  return n?sc/(n*4):0;}
+function rankKB(q){if(!KBI.length)buildIndex();const E=expandQ(q),W=qWords(q);
+  return KBI.map(d=>({item:d.item,cat:d.cat,score:scoreDoc(d,E,W)*(d.cat.id==='history'?.5:1)})).filter(r=>r.score>=.12).sort((a,b)=>b.score-a.score).filter((r,i,A)=>A.findIndex(x=>x.item.q===r.item.q)===i);}
+function hlWords(html,words){words.filter(w=>w.length>=2).forEach(w=>{const re=new RegExp('('+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');html=html.replace(re,'<mark>$1</mark>');});return html;}
+let CASES=[],TOPICS=[],CI=[];
+function caseTopics(t){const r=TOPICS.filter(([n,kw])=>kw.some(k=>t.includes(k))).map(x=>x[0]);return r.length?r:['其他'];}
+function rankCases(q,limit){const E=expandQ(q),W=qWords(q);
+  return CI.map((c,i)=>{let sc=0;E.main.forEach(b=>{if(c.qb.has(b))sc+=2;});E.ext.forEach(b=>{if(c.qb.has(b))sc+=.5;});W.forEach(w=>{if(c.qs.includes(w))sc+=w.length;});return [sc/((E.main.size||1)*2),i];})
+   .filter(x=>x[0]>=.3).sort((a,b)=>b[0]-a[0]||(CASES[b[1]].a?1:0)-(CASES[a[1]].a?1:0)).slice(0,limit).map(x=>CASES[x[1]]);}
+function caseHTML(c,words){return `<div class="case-card${c.st==='需專人回電'?' esc':''}"><div class="case-meta"><span>${c.d}</span><span class="pill">${esc(c.t)}</span><span class="pill">${esc(c.who||'')}</span>${c.city?'<span>'+esc(c.city)+'</span>':''}<span class="pill${c.st==='需專人回電'?' o':''}">${esc(c.st||'')}</span></div><div class="case-q">${hlWords(esc(c.q),words||[])}</div>${c.a?'<div class="case-a">'+esc(c.a)+'</div>':''}</div>`;}
+function renderCaseHits(q){const box=document.getElementById('caseSearch');if(!CASES.length){box.innerHTML='';return;}
+  const hits=rankCases(q,8);const W=qWords(q);
+  box.innerHTML=hits.length?`<div class="sec-hdr" style="margin-top:18px"><div class="sec-title">📞 今年同仁怎麼回覆類似問題</div><div class="sec-cnt">${hits.length} 筆</div><div class="sec-add" onclick="openCasesWith('${esc(q).replace(/'/g,'')}')">看更多案例 →</div></div>`+hits.map(c=>caseHTML(c,W)).join(''):'';}
+function askNow(){const v=document.getElementById('askInput').value.trim();if(!v)return;document.getElementById('mainSearch').value=v;doSearch(v);}
+function renderHome(){
+  const nc=db.cats.find(c=>/公告/.test(c.name));const np=document.getElementById('newsPanel');
+  if(nc){np.innerHTML=(db.items[nc.id]||[]).slice(0,6).map(it=>`<div class="news-row" onclick="document.getElementById('mainSearch').value=this.dataset.q;doSearch(this.dataset.q)" data-q="${esc(it.q)}"><span>${(it.tags||[]).filter(t=>/\d{4}\//.test(t.t)).map(t=>'<span class="qa-tag tag-purple">'+esc(t.t)+'</span>').join('')}</span><span>${esc(it.q)}</span></div>`).join('')||'<div class="news-row">目前沒有公告</div>';}
+  document.getElementById('newsUpd').textContent=db.overview.updated?('更新 '+db.overview.updated):'';
+  const hc=document.getElementById('hotChips');
+  if(CASES.length&&TOPICS.length){const cnt={};CASES.forEach(c=>c._tp.forEach(t=>cnt[t]=(cnt[t]||0)+1));
+    hc.innerHTML='<span style="font-size:12px;color:var(--text-muted);padding-top:4px">🔥 今年最常被問：</span>'+Object.entries(cnt).filter(e=>e[0]!=='其他').sort((a,b)=>b[1]-a[1]).slice(0,10)
+      .map(([t,n])=>`<button class="chip" onclick="askTopic('${t}')">${t}<b>${n}</b></button>`).join('');}
+  else hc.innerHTML=['颱風停班可以退款嗎','照服員沒來怎麼辦','忘記帳號','取消違約金','收據怎麼申請'].map(x=>`<button class="chip" onclick="document.getElementById('askInput').value='${x}';askNow()">${x}</button>`).join('');
+}
+function askTopic(t){const kw=(TOPICS.find(x=>x[0]===t)||[t,[t]])[1].slice(0,3).join(' ');document.getElementById('askInput').value=t.replace(/／/g,' ');document.getElementById('mainSearch').value=t.replace(/／/g,' ');doSearch(t.replace(/／/g,' ')+' '+kw);}
+// 案例頁
+let casePage=1;
+function showCases(){showSec('cases');
+  if(!CASES.length){document.getElementById('caseList').innerHTML='<div class="no-res">案例資料載入中，或找不到 cases.json（請確認已上傳到 GitHub）</div>';return;}
+  const T=document.getElementById('cfT');if(!T.options.length){
+    T.innerHTML='<option value="">全部問題類型</option>'+[...new Set(CASES.map(c=>c.t))].map(t=>`<option>${esc(t)}</option>`).join('');
+    document.getElementById('cfTopic').innerHTML='<option value="">全部主題</option>'+TOPICS.map(t=>`<option>${t[0]}</option>`).join('')+'<option>其他</option>';
+    document.getElementById('cfM').innerHTML='<option value="">全部月份</option>'+[...new Set(CASES.map(c=>c.d.slice(0,7)))].sort().reverse().map(m=>`<option>${m}</option>`).join('');}
+  renderCases(1);}
+function openCasesWith(q){showCases();document.getElementById('cfQ').value=q;renderCases(1);}
+function renderCases(p){casePage=p;const q=document.getElementById('cfQ').value.trim(),t=document.getElementById('cfT').value,tp=document.getElementById('cfTopic').value,st=document.getElementById('cfS').value,m=document.getElementById('cfM').value;
+  let L=CASES.filter(c=>(!t||c.t===t)&&(!tp||c._tp.includes(tp))&&(!st||c.st===st)&&(!m||c.d.startsWith(m)));
+  if(q){const ws=q.split(/\s+/).filter(Boolean);const ex=L.filter(c=>ws.every(w=>(c.q+c.a).includes(w)));L=ex.length?ex:rankCases(q,200).filter(c=>L.includes(c));}
+  else L=L.slice().sort((a,b)=>b.d.localeCompare(a.d));
+  const per=30,pages=Math.max(1,Math.ceil(L.length/per));
+  document.getElementById('caseCnt').textContent=`${L.length} / ${CASES.length} 筆`;
+  document.getElementById('caseList').innerHTML=L.slice((p-1)*per,p*per).map(c=>caseHTML(c,q?q.split(/\s+/):[])).join('')||'<div class="no-res">沒有符合的案例</div>';
+  let pg='';if(pages>1){pg+=`<button class="btn btn-ghost" ${p<=1?'disabled':''} onclick="renderCases(${p-1})">← 上一頁</button><span style="padding:6px;font-size:13px">${p} / ${pages}</span><button class="btn btn-ghost" ${p>=pages?'disabled':''} onclick="renderCases(${p+1})">下一頁 →</button>`;}
+  document.getElementById('casePager').innerHTML=pg;document.getElementById('contentArea').scrollTop=0;}
+// 統計頁
+function showStats(){showSec('stats');const B=document.getElementById('statsBody');
+  if(!CASES.length){B.innerHTML='<div class="no-res">找不到 cases.json</div>';return;}
+  const N=CASES.length,esc_=CASES.filter(c=>c.st==='需專人回電').length,cg=CASES.filter(c=>c.who==='CG').length;
+  const by=(f)=>{const o={};CASES.forEach(c=>[].concat(f(c)).forEach(k=>{o[k]=o[k]||[0,0];o[k][0]++;if(c.st==='需專人回電')o[k][1]++;}));return o;};
+  const bars=(o,sort,click)=>{const E=Object.entries(o);if(sort)E.sort((a,b)=>b[1][0]-a[1][0]);const mx=Math.max(...E.map(e=>e[1][0]));
+    return E.map(([k,[n,e]])=>`<div class="bar-row" ${click?`onclick="${click}('${k}')"`:''}><div class="bar-lbl">${esc(k)}</div><div class="bar-trk"><div class="bar-fill" style="width:${n/mx*100}%"></div><div class="bar-fill2" style="width:${e/mx*100}%"></div></div><div class="bar-val">${n}｜${Math.round(e/n*100)}%</div></div>`).join('');};
+  const months=by(c=>c.d.slice(0,7));const mo={};Object.keys(months).sort().forEach(k=>mo[k]=months[k]);
+  B.innerHTML=`<div class="st-grid"><div class="st-box"><div class="st-n">${N.toLocaleString()}</div><div class="st-l">今年有效來電紀錄</div></div>
+   <div class="st-box"><div class="st-n">${Math.round(esc_/N*100)}%</div><div class="st-l">需專人回電比例</div></div>
+   <div class="st-box"><div class="st-n">${Math.round(cg/N*100)}%</div><div class="st-l">照服員（CG）來電佔比</div></div>
+   <div class="st-box"><div class="st-n">${CASES[CASES.length-1].d}</div><div class="st-l">資料最後日期</div></div></div>
+   <div class="panel"><div class="sec-title" style="margin-bottom:4px">🔥 熱門主題（點一下看案例）</div><div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">淺色＝來電數，深色＝需專人回電；右側：來電數｜回電比例。回電比例高的主題代表知識庫最需要補強。</div>${bars(by(c=>c._tp),true,'statTopic')}</div>
+   <div class="panel"><div class="sec-title" style="margin-bottom:10px">📅 每月來電</div>${bars(mo,false)}</div>
+   <div class="panel"><div class="sec-title" style="margin-bottom:10px">🗂️ ECP 問題類型</div>${bars(by(c=>c.t),true)}</div>`;}
+function statTopic(t){showCases();document.getElementById('cfTopic').value=t;renderCases(1);}
+async function loadExtra(){
+  try{const [r1,r2]=await Promise.all([fetch('./cases.json?t='+Date.now()),fetch('./topics.json?t='+Date.now())]);
+    if(r2.ok)TOPICS=await r2.json();
+    if(r1.ok){CASES=await r1.json();CASES.forEach(c=>{c._tp=caseTopics(c.q);});CI=CASES.map(c=>({qb:bigr(normQ(c.q)),qs:normQ(c.q)}));}
+  }catch(e){console.warn('cases load fail',e);}
+  renderHome();
+  if(curSec==='search'){const v=document.getElementById('mainSearch').value;if(v)renderCaseHits(v);}
+}
+
 // ── INIT ──
 // 優先從 data.json 載入（GitHub 同步用），失敗才用 localStorage
 async function init(){
@@ -1671,6 +1898,7 @@ async function init(){
         Object.values(db.items).forEach(arr=>arr.forEach(item=>{if(!item.imgs)item.imgs=[];}));
         renderAll();
         showSec('overview');
+        loadExtra();
         return;
       }
     }
@@ -1681,6 +1909,7 @@ async function init(){
   initDB();
   renderAll();
   showSec('overview');
+  loadExtra();
 }
 init();
 </script>
